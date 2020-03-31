@@ -17,12 +17,25 @@ void help(void) {
 
 void dir(void) {
     DIR *pwd = opendir(".");
-    struct dirent *pwd_entry;
+    struct dirent *pwd_entry = NULL;
+    struct stat entry_stat;
 
     if (pwd != NULL) {
 	pwd_entry = readdir(pwd);
 	while (pwd_entry != NULL) {
-	    printf("%s\n", pwd_entry->d_name);
+	    /*
+	    if (strcmp_twice(pwd_entry->d_name, ".", "..")) {
+		pwd_entry = readdir(pwd);
+		continue;
+	    }
+		*/
+	    printf("%s", pwd_entry->d_name);
+	    lstat(pwd_entry->d_name, &entry_stat);
+	    if (S_IFREG & entry_stat.st_mode) {
+		if (S_IXGRP & entry_stat.st_mode) printf("*");
+		printf("\n");
+	    }
+	    else if (S_IFDIR & entry_stat.st_mode) printf("/\n");
 	    pwd_entry = readdir(pwd);
 	}
     }

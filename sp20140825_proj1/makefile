@@ -8,6 +8,7 @@ all : $(TARGET)
 $(TARGET) : $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 	rm *.o
+	echo "compile completed!"
 
 clean :
 	rm *.out
