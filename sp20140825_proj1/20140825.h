@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
+#include "helpers.h"
 #include "shell_commands.h"
 
 typedef enum _command {

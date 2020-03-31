@@ -15,13 +15,18 @@ int main() {
 }
 
 command process_instructions(void) {
-    if (strcmp(input, "h") == 0 || strcmp(input, "help") == 0) {
+    if (strcmp_twice(input, "h", "help")) {
 	help();
 	return _help;
     }
-    else if (strcmp(input, "q") == 0 || strcmp(input, "quit") == 0) {
+    else if (strcmp_twice(input, "q", "quit")) {
  	quit();
 	return _quit;
     }
+    else if (strcmp_twice(input, "d", "dir")) {
+	dir();
+	return _dir;
+    }
     return _none;
 }
+
