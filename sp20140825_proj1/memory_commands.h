@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-char memory[65536][16];
+char MEM[65536][16];
 
 void dump(int start, int end);
 
