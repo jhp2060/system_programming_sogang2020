@@ -14,7 +14,7 @@ void help(void) {
     printf("opcodelist\n");
 }
 
-
+// print out the files and directories 
 void dir(void) {
     DIR *pwd = opendir(".");
     struct dirent *pwd_entry = NULL;
@@ -23,12 +23,6 @@ void dir(void) {
     if (pwd != NULL) {
 	pwd_entry = readdir(pwd);
 	while (pwd_entry != NULL) {
-	    /*
-	    if (strcmp_twice(pwd_entry->d_name, ".", "..")) {
-		pwd_entry = readdir(pwd);
-		continue;
-	    }
-		*/
 	    printf("%s", pwd_entry->d_name);
 	    lstat(pwd_entry->d_name, &entry_stat);
 	    if (S_IFREG & entry_stat.st_mode) {
@@ -47,5 +41,26 @@ void quit(void) {
 }
 
 void history(void) {
+    node* now = head_log;
+    int count = 1;
+    while (now != NULL) {
+	printf("%4d %s\n", count++, now->str);
+	if (count > 100) break;
+	now = now->next;
+    }
+}
 
+// push the commands into linked list using head_log and tail_log
+void push_log(char* string) {
+    node* new = malloc(sizeof(node));
+    strcpy(new->str, string);
+    new->next = NULL;
+    if (tail_log == NULL) {
+	head_log = new;
+	tail_log = new;
+    }
+    else {
+	tail_log->next = new;
+	tail_log = new;
+    }    
 }

@@ -9,5 +9,7 @@ typedef enum _command {
     _help=0, _dir, _quit, _history, _dump, _edit, _fill, _reset, _opcode, _opcodelist, _none
 } command;
 
-command process_instructions(void);
-
+command get_command(void);
+void execute_instructions(command c);
+void init(void);
+void exit_program(void);
