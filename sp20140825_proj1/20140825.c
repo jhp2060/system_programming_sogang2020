@@ -47,16 +47,16 @@ void execute_instructions(command c) {
 }
 
 void init(void) {
-    head_log = NULL;
-    tail_log = NULL;
+    HEAD_LOG = NULL;
+    TAIL_LOG = NULL;
 }
 
 void exit_program(void) {
     node* tmp;
-    while (head_log != NULL) {
-	tmp = head_log;
-	head_log = head_log->next;
+    while (HEAD_LOG != NULL) {
+	tmp = HEAD_LOG;
+	HEAD_LOG = HEAD_LOG->next;
 	free(tmp);
     }
-    tail_log = NULL;
+    TAIL_LOG = NULL;
 }

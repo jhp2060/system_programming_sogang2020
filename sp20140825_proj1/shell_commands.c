@@ -40,8 +40,9 @@ void quit(void) {
     return;
 }
 
+// print out the LOGs
 void history(void) {
-    node* now = head_log;
+    node* now = HEAD_LOG;
     int count = 1;
     while (now != NULL) {
 	printf("%4d %s\n", count++, now->str);
@@ -50,17 +51,17 @@ void history(void) {
     }
 }
 
-// push the commands into linked list using head_log and tail_log
+// push the commands into linked list using HEAD_LOG and TAIL_LOG
 void push_log(char* string) {
     node* new = malloc(sizeof(node));
     strcpy(new->str, string);
     new->next = NULL;
-    if (tail_log == NULL) {
-	head_log = new;
-	tail_log = new;
+    if (TAIL_LOG == NULL) {
+	HEAD_LOG = new;
+	TAIL_LOG = new;
     }
     else {
-	tail_log->next = new;
-	tail_log = new;
+	TAIL_LOG->next = new;
+	TAIL_LOG = new;
     }    
 }
