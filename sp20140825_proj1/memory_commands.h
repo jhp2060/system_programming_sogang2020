@@ -12,6 +12,7 @@ int LAST_ADDR;
 int TOKEN_COUNT;
 
 int dump(char* start, char* end);
+int edit(char* address, char* value);
 
 // functions for "dump"
 void print_chars(int row);
@@ -19,5 +20,6 @@ int transform_start(char* start);
 int transform_end(int start, char* end);
 int validate_start_end(int start, int end);
 
+// functions for "edit"
 
 #endif

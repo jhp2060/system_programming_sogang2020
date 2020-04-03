@@ -22,6 +22,22 @@ int dump(char* start, char* end) {
     return 1;
 }
 
+int edit(char* address, char* value) {
+    int addr = hexstr_to_int(address);
+    int val = hexstr_to_int(value);
+    if (addr == -1 || val == -1) return -1;
+    if (addr < 0 || addr >= MEM_SIZE) {
+	printf("ERROR(memory): wrong address to access.\n");
+	return -1;
+    }
+    if (val < 0 || val > 255) {
+	printf("ERROR: wrong value to store.\n");
+	return -1;
+    }
+    MEM[addr] = value;
+    return 1;
+}
+
 void print_chars(int row) {
     int i;
     for (i = 0; i < 16; i++) {
@@ -55,19 +71,19 @@ int transform_end(int start, char* end) {
 // -1 : normal_err_code, -2 : err_code to print out err_msg
 int validate_start_end(int start, int end) {
     if (start == -2) {
-	printf("ERROR(arguments): should use ',' between two arguments.\n");
+	printf("ERROR: should use ',' between two arguments.\n");
 	return -1;
     }
     if (start == -1 || end == -1) {
-	printf("ERROR(arguments): wrong format for hex.\n"); 
+	printf("ERROR: wrong format for hex.\n"); 
 	return -1;  	// something wrong happened in transformation
     }
     if (start > end) {
-	printf("ERROR(arguments): wrong range to dump.\n"); 
+	printf("ERROR: wrong range.\n"); 
 	return -1;
     }
     if (start < 0 || start >= MEM_SIZE || end < 0 || end >= MEM_SIZE) {
-	printf("ERROR(memory): wrong address to access.\n");
+	printf("ERROR: wrong address to access.\n");
 	return -1; // wrong address
     }
     if (TOKEN_COUNT == 1) LAST_ADDR = end;
