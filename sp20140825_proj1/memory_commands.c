@@ -32,7 +32,7 @@ int edit(char* address, char* value) {
     int val = hexstr_to_int(value);
     if (addr == -1 || val == -1) return -1;
     if (addr < 0 || addr >= MEM_SIZE) {
-	printf("ERROR(memory): wrong address to access.\n");
+	printf("ERROR: wrong address to access.\n");
 	return -1;
     }
     if (val < 0 || val > 255) {

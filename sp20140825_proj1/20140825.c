@@ -61,6 +61,7 @@ command get_command(void) {
     else if (strcmp_twice(input, "d", "dir")) return _dir;
     else if (strcmp_twice(input, "hi", "history")) return _history;
     else if (strcmp_twice(tokens[0], "du", "dump")) return _dump;
+    else if (strcmp_twice(tokens[0], "e", "edit")) return _edit;
     return _none;
 }
 
@@ -86,9 +87,17 @@ int execute_instructions(command c) {
 	    succeeded = 0;
 	    break;	
 	}
-        if(dump(tokens[1], tokens[2]) != 1) 
+        if (dump(tokens[1], tokens[2]) != 1) 
 	    succeeded = 0;
         break;
+    case _edit:
+	if (TOKEN_COUNT != 3) {
+	    succeeded = 0;
+	    break;
+	}
+	if (edit(tokens[1], tokens[2]) != 1)
+	    succeeded = 0;
+	break;
     default:
 	succeeded = 0;
 	break;
