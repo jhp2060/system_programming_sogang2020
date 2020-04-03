@@ -23,6 +23,11 @@ int dump(char* start, char* end) {
 }
 
 int edit(char* address, char* value) {
+    if (address[strlen(address) - 1] != ',') {
+	printf("ERROR: should use ',' between two arguments.\n");
+	return -1;
+    }
+    address[strlen(address) - 1] = '\0';
     int addr = hexstr_to_int(address);
     int val = hexstr_to_int(value);
     if (addr == -1 || val == -1) return -1;
@@ -34,7 +39,7 @@ int edit(char* address, char* value) {
 	printf("ERROR: wrong value to store.\n");
 	return -1;
     }
-    MEM[addr] = value;
+    MEM[addr] = val;
     return 1;
 }
 
