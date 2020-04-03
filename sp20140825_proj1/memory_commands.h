@@ -1,15 +1,23 @@
-#ifndef MEMORY_COMMANDS_H
-#define MEMORY_COMMANDS_H
+#ifndef __MEMORY_COMMANDS_H__
+#define __MEMORY_COMMANDS_H__
 
 #include <stdio.h>
+#include <string.h>
+#include "helpers.h"
 
-char MEM[65536][16];
-int LAST_ADDR = 0;
+#define MEM_SIZE 1048576
 
-void dump(int start, int end);
+char MEM[MEM_SIZE];
+int LAST_ADDR;
+int TOKEN_COUNT;
 
-void print_address(int row);
-void print_bytes(int row, int st, int ed);
+int dump(char* start, char* end);
+
+// functions for "dump"
 void print_chars(int row);
+int transform_start(char* start);
+int transform_end(int start, char* end);
+int validate_start_end(int start, int end);
+
 
 #endif

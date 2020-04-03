@@ -1,19 +1,20 @@
 #include "20140825.h"
 
 int main() {
+    char log_sentence[100];
     init();
     command ret;
     while(1) {
 	printf("sicsim> ");
 	scanf("%[^\n]", input);
+	strcpy(log_sentence, input);
 	getchar();
-	flush_tokens();
 	tokenize_input();
 	ret = get_command();
 	if (ret != _none) {
 	    if (ret == _quit) break;
-	    push_log(input);
-	    execute_instructions(ret);
+	    if (execute_instructions(ret) == 1)
+		push_log(log_sentence);
 	}
     }
     exit_program();
@@ -23,7 +24,8 @@ int main() {
 // flush the tokens before getting new tokens
 void flush_tokens(void) {
     int i;
-    for (i = 0; i < MAX_TOKENS; i++) strcpy(tokens[i], "\0");
+    for (i = 0; i < MAX_TOKENS; i++) strcpy(tokens[i], "\0"); 
+    TOKEN_COUNT = 0;
 }
 
 // return the next token's first index in input
@@ -39,30 +41,31 @@ int get_next_token_idx(char* str) {
 
 // parse the command and arguments from input, into tokens
 void tokenize_input(void) {
-    int start_idx = 0, next_idx = 0, token_cnt = 0;
+    int start_idx = 0, next_idx = 0;
+    flush_tokens();
     
     while (input[start_idx] == ' ') start_idx++;		// remove whitespaces in left
     while (start_idx < MAX_INPUT_LEN) {
 	next_idx = get_next_token_idx(input + start_idx);
 	if (next_idx == -1) break;				// no more tokens
-	if (token_cnt >= MAX_TOKENS) break;			// check the limitations
+	if (TOKEN_COUNT >= MAX_TOKENS) break;			// check the limitations
 	if (strlen(input + start_idx) > MAX_TOKEN_LEN) break;
-	strcpy(tokens[token_cnt++], input + start_idx);   	// store the tokens
+	strcpy(tokens[TOKEN_COUNT++], input + start_idx);   	// store the tokens
 	start_idx += next_idx;
     }
 }
 
 command get_command(void) {
-    char* cmd = tokens[0];
-    if (strcmp_twice(cmd, "h", "help")) return _help;
-    else if (strcmp_twice(cmd, "q", "quit")) return _quit;
-    else if (strcmp_twice(cmd, "d", "dir")) return _dir;
-    else if (strcmp_twice(cmd, "hi", "history")) return _history;
-    else if (strcmp_twice(cmd, "du", "dump")) return _dump;
+    if (strcmp_twice(input, "h", "help")) return _help;
+    else if (strcmp_twice(input, "q", "quit")) return _quit;
+    else if (strcmp_twice(input, "d", "dir")) return _dir;
+    else if (strcmp_twice(input, "hi", "history")) return _history;
+    else if (strcmp_twice(tokens[0], "du", "dump")) return _dump;
     return _none;
 }
 
-void execute_instructions(command c) {
+int execute_instructions(command c) {
+    int succeeded = 1;
     switch(c) {
     case _help:
 	help();
@@ -74,20 +77,30 @@ void execute_instructions(command c) {
 	dir();
 	break;
     case _history:
+	push_log(tokens[0]);
 	history();
+	succeeded = 0;
 	break;
     case _dump:
-        dump(0, 16*10);
+	if (TOKEN_COUNT > 3) {
+	    succeeded = 0;
+	    break;	
+	}
+        if(dump(tokens[1], tokens[2]) != 1) 
+	    succeeded = 0;
         break;
     default:
+	succeeded = 0;
 	break;
     }
+    return succeeded;
 }
 
 void init(void) {
     HEAD_LOG = NULL;
     TAIL_LOG = NULL;
-    LAST_ADDR = 0;
+    TOKEN_COUNT = 0;
+    LAST_ADDR = -1;
 }
 
 void exit_program(void) {

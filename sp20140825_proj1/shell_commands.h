@@ -1,5 +1,5 @@
-#ifndef SHELL_COMMANDS_H
-#define SHELL_COMMANDS_H
+#ifndef __SHELL_COMMANDS_H__
+#define __SHELL_COMMANDS_H__
 
 #include <stdio.h>
 #include <dirent.h>
@@ -24,5 +24,4 @@ void quit(void);
 void history(void);
 
 void push_log(char* string);
-
 #endif

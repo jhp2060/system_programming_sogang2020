@@ -8,7 +8,6 @@ int hexstr_to_int(char* str) {
     int i, ret = 0, now, mult = 1;
     int len = strlen(str);
     for (i = len - 1; i >= 0; i--) {
-        if (str[i] == ',') continue;
         if (str[i] >= '0' && str[i] <= '9') now = str[i] - '0';
         else if (str[i] >= 'A' && str[i] <= 'F')
             now = str[i] - 'A' + 10;
