@@ -62,6 +62,8 @@ command get_command(void) {
     else if (strcmp_twice(input, "hi", "history")) return _history;
     else if (strcmp_twice(tokens[0], "du", "dump")) return _dump;
     else if (strcmp_twice(tokens[0], "e", "edit")) return _edit;
+    else if (strcmp_twice(tokens[0], "f", "fill")) return _fill;
+    else if (strcmp(input, "reset")) return _reset;
     return _none;
 }
 
@@ -83,20 +85,19 @@ int execute_instructions(command c) {
 	succeeded = 0;
 	break;
     case _dump:
-	if (TOKEN_COUNT > 3) {
-	    succeeded = 0;
-	    break;	
-	}
-        if (dump(tokens[1], tokens[2]) != 1) 
+        if (dump(tokens[1], tokens[2], TOKEN_COUNT) != 1) 
 	    succeeded = 0;
         break;
     case _edit:
-	if (TOKEN_COUNT != 3) {
+	if (edit(tokens[1], tokens[2], TOKEN_COUNT) != 1)
 	    succeeded = 0;
-	    break;
-	}
-	if (edit(tokens[1], tokens[2]) != 1)
+	break;
+    case _fill:
+	if (fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT) != 1)
 	    succeeded = 0;
+	break;
+    case _reset:
+	reset();
 	break;
     default:
 	succeeded = 0;
