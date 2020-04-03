@@ -1,14 +1,34 @@
 #include "memory_commands.h"
 
+// print out the memory between start and end
 int dump(char* start, char* end) {
     int row, col;
-    int st = transform_start(start);
-    int ed = transform_end(st, end);    
-    int err_code = validate_start_end(st, ed);
+    int st, ed, err_code;
+    
+    // argument parsing and validation
+    switch (TOKEN_COUNT) {
+	case 1: // no arguments
+	    st = LAST_ADDR + 1 < MEM_SIZE ? LAST_ADDR + 1 : 0;
+	    ed = st + 16 * 10 - 1 < MEM_SIZE ? st + 16 * 10 - 1 : MEM_SIZE - 1;
+	    break;
+	case 2: // 1 argument
+	    err_code = validate_one_hexstr_argument(start, &st);
+	    if (err_code != 1) return err_code;
+	    ed = st + 16 * 10 - 1 < MEM_SIZE ? st + 16 * 10 - 1 : MEM_SIZE - 1;
+	    break;	    
+	case 3: // 2 arguments
+	    err_code = validate_two_hexstr_arguments(start, end, &st, &ed);
+	    if (err_code != 1) return err_code;
+	    break;
+	default:
+	   return -1;
+    }
+    err_code = validate_range(st, ed);
     if (err_code != 1) return err_code;
+
+    // print out the memory values in the valid range
     int st_row = st / 16, ed_row = ed / 16;
     if (ed_row < 0) ed_row = 0;
-
     for (row = st_row; row <= ed_row; row++) {
 	printf("%05X  ", row * 16); 
 	for (col = 0; col < 16; col++) {
@@ -19,9 +39,11 @@ int dump(char* start, char* end) {
 	printf(";  ");
 	print_chars(row);
     }
+    LAST_ADDR = ed;
     return 1;
 }
 
+// edit the value of memory at the address
 int edit(char* address, char* value) {
     if (address[strlen(address) - 1] != ',') {
 	printf("ERROR: should use ',' between two arguments.\n");
@@ -43,6 +65,22 @@ int edit(char* address, char* value) {
     return 1;
 }
 
+// fill the memory spaces between start and end with a value
+int fill(char* start, char* end, char* value) {
+    if (start[strlen(start) - 1] != ',' || end[strlen(end) -1] != ',') {
+	printf("ERROR: should use ',' between two arguments.\n");
+	return -1;
+    }
+    start[strlen(start) - 1] = ',';
+    end[strlen(end) - 1] = ',';
+    int st = hexstr_to_int(start), ed = hexstr_to_int(end);
+    int val = hexstr_to_int(value);
+    if (st == -1 || ed == -1 || val == -1) {
+    }
+    return 1;
+}
+
+// print out the values of MEM, in the character format
 void print_chars(int row) {
     int i;
     for (i = 0; i < 16; i++) {
@@ -93,4 +131,72 @@ int validate_start_end(int start, int end) {
     }
     if (TOKEN_COUNT == 1) LAST_ADDR = end;
     return 1;
+}
+
+int validate_one_hexstr_argument(char* arg1, int* ret1) {
+    *ret1 = hexstr_to_int(arg1);
+    if (*ret1 == -1) {
+	printf("ERROR: wrong hexa string to turn into int.\n"); 
+	return -1;
+    }
+    return 1;
+}
+
+int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) {
+    if (arg1[strlen(arg1) - 1] != ',') {
+	printf("ERROR: should use ',' between two arguments.\n");
+	return -2;
+    }
+    arg1[strlen(arg1) - 1] = '\0';
+    *ret1 = hexstr_to_int(arg1);
+    *ret2 = hexstr_to_int(arg2);
+    if (*ret1 == -1 || *ret2 == -1) {
+	printf("ERROR: wrong hexa string to turn into int.\n"); 
+	return -1;
+    }
+    return 1;    
+}
+
+int validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
+				int* ret1, int* ret2, int* ret3) {
+    if (arg1[strlen(arg1) - 1] != ',' || arg2[strlen(arg2) - 1] != ',') {
+	printf("ERROR: should use ',' between two arguments.\n");
+	return -2;
+    }
+    arg1[strlen(arg1) - 1] = '\0';
+    arg2[strlen(arg2) - 1] = '\0';
+    *ret1 = hexstr_to_int(arg1);
+    *ret2 = hexstr_to_int(arg2);
+    *ret3 = hexstr_to_int(arg3);
+    if (*ret1 == -1 || *ret2 == -1 || *ret3 == -1) {
+	printf("ERROR: wrong hexa string to turn into int.\n"); 
+	return -1;
+    }
+    return 1;    
+}
+
+int validate_address(int address) {
+    if (address < 0 || address >= MEM_SIZE) {
+	printf("ERROR: wrong address to access.\n");
+	return -3;	
+    }
+    return 1;
+}
+
+int validate_value(int value) {
+    if (value < 32 || value > 126 ) { // range between 0x20 and 0x7E
+	printf("ERROR: wrong value to store.\n");
+	return -4;
+    }
+    return 1;
+}
+
+int validate_range(int start, int end) {
+    if (validate_address(start) != 1) return -3;
+    if (validate_address(end) != 1) return -3;
+    if (start > end) {
+	printf("ERROR: wrong range.\n");
+	return -5;
+    }
+    return 1;	
 }
