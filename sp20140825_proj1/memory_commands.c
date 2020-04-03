@@ -61,16 +61,16 @@ int edit(char* address, char* value) {
 
 // fill the memory spaces between start and end with a value
 int fill(char* start, char* end, char* value) {
-    if (start[strlen(start) - 1] != ',' || end[strlen(end) -1] != ',') {
-	printf("ERROR: should use ',' between two arguments.\n");
-	return -1;
-    }
-    start[strlen(start) - 1] = ',';
-    end[strlen(end) - 1] = ',';
-    int st = hexstr_to_int(start), ed = hexstr_to_int(end);
-    int val = hexstr_to_int(value);
-    if (st == -1 || ed == -1 || val == -1) {
-    }
+    int st, ed, val, i;
+    int err_code = validate_three_hexstr_arguments(start, end, value, &st, &ed, &val);
+
+    err_code = validate_range(st, ed);
+    if (err_code != 1) return err_code;
+
+    err_code = validate_value(val);
+    if (err_code != 1) return err_code;
+
+    for (i = st; i <= ed; i++) MEM[i] = val;
     return 1;
 }
 
@@ -85,48 +85,7 @@ void print_chars(int row) {
     printf("\n");
 }
 
-int transform_start(char* start) {
-    if (TOKEN_COUNT == 1) // no arguments -> automatical addressing
-	return LAST_ADDR + 1 < MEM_SIZE ? LAST_ADDR + 1 : 0; 
-    if (TOKEN_COUNT == 2) return hexstr_to_int(start); // one argument
-    if (TOKEN_COUNT == 3) { // two arguments
-    	if (start[strlen(start)- 1] != ',') return -2; // ',' must be next to start argument
-    	start[strlen(start) - 1] = '\0';
-    	return hexstr_to_int(start);
-    }
-    return -1;
-}
-
-int transform_end(int start, char* end) {
-    if (TOKEN_COUNT == 1 || TOKEN_COUNT == 2) // 0, 1 argument -> automatical addressing
-	return start + 16 * 10 - 1 < MEM_SIZE ? start + 16 * 10 - 1 : MEM_SIZE - 1;
-    if (TOKEN_COUNT == 3) return hexstr_to_int(end); // 2 arguments
-    return -1;
-}
-
-// check the validity of start and end of int value
-// -1 : normal_err_code, -2 : err_code to print out err_msg
-int validate_start_end(int start, int end) {
-    if (start == -2) {
-	printf("ERROR: should use ',' between two arguments.\n");
-	return -1;
-    }
-    if (start == -1 || end == -1) {
-	printf("ERROR: wrong format for hex.\n"); 
-	return -1;  	// something wrong happened in transformation
-    }
-    if (start > end) {
-	printf("ERROR: wrong range.\n"); 
-	return -1;
-    }
-    if (start < 0 || start >= MEM_SIZE || end < 0 || end >= MEM_SIZE) {
-	printf("ERROR: wrong address to access.\n");
-	return -1; // wrong address
-    }
-    if (TOKEN_COUNT == 1) LAST_ADDR = end;
-    return 1;
-}
-
+// validate one hexa string argument
 int validate_one_hexstr_argument(char* arg1, int* ret1) {
     *ret1 = hexstr_to_int(arg1);
     if (*ret1 == -1) {
@@ -136,6 +95,7 @@ int validate_one_hexstr_argument(char* arg1, int* ret1) {
     return 1;
 }
 
+// validate two hexa string arguments
 int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) {
     if (arg1[strlen(arg1) - 1] != ',') {
 	printf("ERROR: should use ',' between two arguments.\n");
@@ -151,6 +111,7 @@ int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) 
     return 1;    
 }
 
+// validate three hexa string arguments
 int validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
 				int* ret1, int* ret2, int* ret3) {
     if (arg1[strlen(arg1) - 1] != ',' || arg2[strlen(arg2) - 1] != ',') {
@@ -169,6 +130,7 @@ int validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
     return 1;    
 }
 
+// validate adddress not to make underflow or overflow which leads to segmentation fault
 int validate_address(int address) {
     if (address < 0 || address >= MEM_SIZE) {
 	printf("ERROR: wrong address to access.\n");
@@ -177,14 +139,16 @@ int validate_address(int address) {
     return 1;
 }
 
+// validate a value to be in the range between 0x20 and 0x7E
 int validate_value(int value) {
-    if (value < 32 || value > 126 ) { // range between 0x20 and 0x7E
+    if (value < 32 || value > 126 ) {
 	printf("ERROR: wrong value to store.\n");
 	return -4;
     }
     return 1;
 }
 
+// validate the addresses and the range between start and end
 int validate_range(int start, int end) {
     if (validate_address(start) != 1) return -3;
     if (validate_address(end) != 1) return -3;
