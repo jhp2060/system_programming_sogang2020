@@ -45,22 +45,16 @@ int dump(char* start, char* end) {
 
 // edit the value of memory at the address
 int edit(char* address, char* value) {
-    if (address[strlen(address) - 1] != ',') {
-	printf("ERROR: should use ',' between two arguments.\n");
-	return -1;
-    }
-    address[strlen(address) - 1] = '\0';
-    int addr = hexstr_to_int(address);
-    int val = hexstr_to_int(value);
-    if (addr == -1 || val == -1) return -1;
-    if (addr < 0 || addr >= MEM_SIZE) {
-	printf("ERROR: wrong address to access.\n");
-	return -1;
-    }
-    if (val < 0 || val > 255) {
-	printf("ERROR: wrong value to store.\n");
-	return -1;
-    }
+    int addr, val;
+    int err_code = validate_two_hexstr_arguments(address, value, &addr, &val);
+    if (err_code != 1) return err_code;
+    
+    err_code = validate_address(addr);
+    if (err_code != 1) return err_code;
+    
+    err_code = validate_value(val);
+    if (err_code != 1) return err_code;
+
     MEM[addr] = val;
     return 1;
 }

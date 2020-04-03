@@ -18,7 +18,7 @@ int fill(char* start, char* end, char* value);
 // functions for "dump"
 void print_chars(int row);
 
-// functions for argument passing
+// functions for argument validation
 int validate_one_hexstr_argument(char* arg1, int* ret1);
 int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2);
 int validate_three_hexstr_arguments(
