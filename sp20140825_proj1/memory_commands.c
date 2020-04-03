@@ -1,12 +1,12 @@
 #include "memory_commands.h"
 
 // print out the memory between start and end
-int dump(char* start, char* end) {
+int dump(char* start, char* end, int token_count) {
     int row, col;
     int st, ed, err_code;
     
     // argument parsing and validation
-    switch (TOKEN_COUNT) {
+    switch (token_count) {
 	case 1: // no arguments
 	    st = LAST_ADDR + 1 < MEM_SIZE ? LAST_ADDR + 1 : 0;
 	    ed = st + 16 * 10 - 1 < MEM_SIZE ? st + 16 * 10 - 1 : MEM_SIZE - 1;
@@ -21,7 +21,7 @@ int dump(char* start, char* end) {
 	    if (err_code != 1) return err_code;
 	    break;
 	default:
-	   return -1;
+	   return -6; // wrong tokens
     }
     err_code = validate_range(st, ed);
     if (err_code != 1) return err_code;
@@ -44,7 +44,9 @@ int dump(char* start, char* end) {
 }
 
 // edit the value of memory at the address
-int edit(char* address, char* value) {
+int edit(char* address, char* value, int token_count) {
+    if (token_count != 3) return -6; // wrong tokens
+
     int addr, val;
     int err_code = validate_two_hexstr_arguments(address, value, &addr, &val);
     if (err_code != 1) return err_code;
@@ -60,7 +62,9 @@ int edit(char* address, char* value) {
 }
 
 // fill the memory spaces between start and end with a value
-int fill(char* start, char* end, char* value) {
+int fill(char* start, char* end, char* value, int token_count) {
+    if (token_count != 4) return -6; // wrong tokens
+
     int st, ed, val, i;
     int err_code = validate_three_hexstr_arguments(start, end, value, &st, &ed, &val);
 
@@ -72,6 +76,12 @@ int fill(char* start, char* end, char* value) {
 
     for (i = st; i <= ed; i++) MEM[i] = val;
     return 1;
+}
+
+// reset all of the memory values as 0
+void reset() {
+    int i;
+    for (i = 0; i < MEM_SIZE; i++) MEM[i] = 0;
 }
 
 // print out the values of MEM, in the character format

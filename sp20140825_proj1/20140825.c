@@ -63,7 +63,7 @@ command get_command(void) {
     else if (strcmp_twice(tokens[0], "du", "dump")) return _dump;
     else if (strcmp_twice(tokens[0], "e", "edit")) return _edit;
     else if (strcmp_twice(tokens[0], "f", "fill")) return _fill;
-    else if (strcmp(input, "reset")) return _reset;
+    else if (strcmp(input, "reset") == 0) return _reset;
     return _none;
 }
 
