@@ -6,13 +6,13 @@
 #include "helpers.h"
 
 #define MAX_OPCODE_LEN 3
-#define MAX_MNEUMONIC_LEN 10
+#define MAX_MNEMONIC_LEN 10
 #define MAX_FORMAT_LEN 10
 #define HASH_TABLE_SIZE 20
 
 typedef struct _hash {
     char opcode[MAX_OPCODE_LEN];
-    char mneumonic[MAX_MNEUMONIC_LEN];
+    char mnemonic[MAX_MNEMONIC_LEN];
     char format[MAX_FORMAT_LEN];
     struct _hash *next;
 }hash;
@@ -24,7 +24,7 @@ void opcodelist();
 
 // functions about hashing
 void init_hash_table(char* filename);
-int get_hash_index(hash* node);
+int get_hash_index(char* mnemonic);
 void free_hash_table(void);
 
 #endif

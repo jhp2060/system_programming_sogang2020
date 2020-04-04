@@ -1,8 +1,33 @@
 #include "opcode_commands.h"
 
 int opcode(char* mnemonic, int token_count) {
-    if (token_count != 2) return -6; // wrong_token
+    if (token_count != 2) return ERR_WRONG_TOKENS;
+    int index = get_hash_index(mnemonic);
+    hash* now = HASH_TABLE[index];
+    while (now != NULL) {
+	if (strcmp(now->mnemonic, mnemonic) == 0) {
+	    printf("opcode is %s\n", now->opcode);
+	    return NO_ERR;
+	}	
+	now = now->next;
+    }   
+    printf("ERROR: no opcode for the mnemonic %s.\n", mnemonic);
+    return ERR_WRONG_MNEMONIC;
+}
 
+void opcdelist(void) {
+    int i;
+    for (i = 0; i < HASH_TABLE_SIZE; i++) {
+	printf("%d : ", i);
+	hash* now = HASH_TABLE[i];
+	while (1) {
+	    printf("[%s,%s]", now->mnemonic, now->opcode);
+	    now = now->next;
+	    if (now == NULL) break;
+	    printf(" -> ");
+	}
+	printf("\n");	
+    }
 }
 
 void init_hash_table(char* filename) {
@@ -12,8 +37,8 @@ void init_hash_table(char* filename) {
     
     // initialize HASH_TABLE
     for (i = 0; i < HASH_TABLE_SIZE; i++) HASH_TABLE[i] = NULL;
-    while(fscanf(fp, "%s%s%s", new->opcode, new->mneumonic, new->format) != EOF) {
-	hash_index = get_hash_index(new);
+    while(fscanf(fp, "%s%s%s", new->opcode, new->mnemonic, new->format) != EOF) {
+	hash_index = get_hash_index(new->mnemonic);
 	new->next = HASH_TABLE[hash_index];
 	HASH_TABLE[hash_index] = new;
 	new = malloc(sizeof(hash));
@@ -21,9 +46,10 @@ void init_hash_table(char* filename) {
     free(new);
 }
 
-int get_hash_index(hash* node) {
-    int ret = hexstr_to_int(node->opcode);
-    if (ret % 16 == 0 || ret % 16 == 8) ret++;  // make index with odd number
+int get_hash_index(char* mnemonic) {
+    int i, ret = 0, len = strlen(mnemonic);
+    for (i = 0; i < len; i++) ret += mnemonic[i];
+    if (ret < 0) ret *= -1;
     return ret % 20;
 }
 
