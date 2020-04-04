@@ -34,7 +34,7 @@ int dump(char* start, char* end, int token_count) {
 	for (col = 0; col < 16; col++) {
 	    int now = row * 16 + col;
 	    if (now < st || now > ed) printf("   ");
-	    else printf("%02X ", MEM[now]);
+	    else printf("%X%X ", (MEM[now] & 0XF0) >> 4, MEM[now] & 0xF);
 	}
 	printf(";  ");
 	print_chars(row);

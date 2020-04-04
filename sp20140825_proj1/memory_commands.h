@@ -7,7 +7,7 @@
 
 #define MEM_SIZE 1048576
 
-unsigned char MEM[MEM_SIZE];
+char MEM[MEM_SIZE];
 int LAST_ADDR;
 int TOKEN_COUNT;
 
