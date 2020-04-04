@@ -15,12 +15,12 @@ int opcode(char* mnemonic, int token_count) {
     return ERR_WRONG_MNEMONIC;
 }
 
-void opcdelist(void) {
+void opcodelist(void) {
     int i;
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
 	printf("%d : ", i);
 	hash* now = HASH_TABLE[i];
-	while (1) {
+	while (now != NULL) {
 	    printf("[%s,%s]", now->mnemonic, now->opcode);
 	    now = now->next;
 	    if (now == NULL) break;

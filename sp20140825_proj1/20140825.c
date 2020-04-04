@@ -64,6 +64,8 @@ command get_command(void) {
     else if (strcmp_twice(tokens[0], "e", "edit")) return _edit;
     else if (strcmp_twice(tokens[0], "f", "fill")) return _fill;
     else if (strcmp(input, "reset") == 0) return _reset;
+    else if (strcmp(tokens[0], "opcode") == 0) return _opcode;
+    else if (strcmp(tokens[0], "opcodelist") == 0) return _opcodelist;
     return _none;
 }
 
@@ -98,6 +100,13 @@ int execute_instructions(command c) {
 	break;
     case _reset:
 	reset();
+	break;
+    case _opcode:
+	if (opcode(tokens[1], TOKEN_COUNT) != NO_ERR)
+	    succeeded = 0;
+	break;
+    case _opcodelist:
+	opcodelist();
 	break;
     default:
 	succeeded = 0;
