@@ -85,15 +85,15 @@ int execute_instructions(command c) {
 	succeeded = 0;
 	break;
     case _dump:
-        if (dump(tokens[1], tokens[2], TOKEN_COUNT) != 1) 
+        if (dump(tokens[1], tokens[2], TOKEN_COUNT) != NO_ERR) 
 	    succeeded = 0;
         break;
     case _edit:
-	if (edit(tokens[1], tokens[2], TOKEN_COUNT) != 1)
+	if (edit(tokens[1], tokens[2], TOKEN_COUNT) != NO_ERR)
 	    succeeded = 0;
 	break;
     case _fill:
-	if (fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT) != 1)
+	if (fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT) != NO_ERR)
 	    succeeded = 0;
 	break;
     case _reset:
@@ -111,6 +111,7 @@ void init(void) {
     TAIL_LOG = NULL;
     TOKEN_COUNT = 0;
     LAST_ADDR = -1;
+    init_hash_table("opcode.txt");
 }
 
 void exit_program(void) {
