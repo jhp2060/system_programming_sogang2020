@@ -114,11 +114,6 @@ void init(void) {
 }
 
 void exit_program(void) {
-    node* tmp;
-    while (HEAD_LOG != NULL) {
-	tmp = HEAD_LOG;
-	HEAD_LOG = HEAD_LOG->next;
-	free(tmp);
-    }
-    TAIL_LOG = NULL;
+    free_log();
+    free_hash_table();
 }

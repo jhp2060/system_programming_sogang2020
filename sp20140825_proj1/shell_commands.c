@@ -65,3 +65,14 @@ void push_log(char* string) {
 	TAIL_LOG = new;
     }    
 }
+
+// free the memory spaces assigned to each node
+void free_log() {
+    node* tmp;
+    while (HEAD_LOG != NULL) {
+        tmp = HEAD_LOG;
+        HEAD_LOG = HEAD_LOG->next;
+        free(tmp);
+    }
+    TAIL_LOG = NULL;
+}
