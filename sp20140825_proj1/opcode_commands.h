@@ -2,6 +2,7 @@
 #define __OPCODE_COMMANDS_H__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "helpers.h"
 
 #define MAX_OPCODE_LEN 3
@@ -18,7 +19,7 @@ typedef struct _hash {
 
 hash* HASH_TABLE[HASH_TABLE_SIZE];
 
-void opcode(char* mnemonic, int token_count);
+int opcode(char* mnemonic, int token_count);
 void opcodelist();
 
 // functions about hashing
