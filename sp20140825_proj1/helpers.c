@@ -13,7 +13,7 @@ int hexstr_to_int(char* str) {
         if (str[i] >= '0' && str[i] <= '9') now = str[i] - '0';
         else if (str[i] >= 'A' && str[i] <= 'F')	// for the uppercase
             now = str[i] - 'A' + 10;
-	else if (str[i] >= 'a' && str[i] >= 'f')	// for the lowercase
+	else if (str[i] >= 'a' && str[i] <= 'f')	// for the lowercase
 	    now = str[i] - 'a' + 10;
         else return ERR_WRONG_HEXSTR;			// wrong format of hexa string
         ret += (now * mult);
