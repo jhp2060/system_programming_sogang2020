@@ -7,16 +7,16 @@ int dump(char* start, char* end, int token_count) {
     
     // argument parsing and validation
     switch (token_count) {
-	case 1: // no arguments
+	case 1: // no arguments : "dump"
 	    st = LAST_ADDR + 1 < MEM_SIZE ? LAST_ADDR + 1 : 0;
 	    ed = st + 16 * 10 - 1 < MEM_SIZE ? st + 16 * 10 - 1 : MEM_SIZE - 1;
 	    break;
-	case 2: // 1 argument
+	case 2: // 1 argument : "dump start"
 	    err_code = validate_one_hexstr_argument(start, &st);
 	    if (err_code != NO_ERR) return err_code;
 	    ed = st + 16 * 10 - 1 < MEM_SIZE ? st + 16 * 10 - 1 : MEM_SIZE - 1;
 	    break;	    
-	case 3: // 2 arguments
+	case 3: // 2 arguments : "dump start, end"
 	    err_code = validate_two_hexstr_arguments(start, end, &st, &ed);
 	    if (err_code != NO_ERR) return err_code;
 	    break;
@@ -39,7 +39,7 @@ int dump(char* start, char* end, int token_count) {
 	printf(";  ");
 	print_chars(row);
     }
-    LAST_ADDR = ed;
+    LAST_ADDR = ed; 	// record the last address for the next dump
     return NO_ERR;
 }
 
@@ -56,7 +56,7 @@ int edit(char* address, char* value, int token_count) {
     err_code = validate_value(val);
     if (err_code != NO_ERR) return err_code;
 
-    MEM[addr] = val;
+    MEM[addr] = val;	// edit the value at the address
     return NO_ERR;
 }
 
@@ -66,6 +66,7 @@ int fill(char* start, char* end, char* value, int token_count) {
 
     int st, ed, val, i;
     int err_code = validate_three_hexstr_arguments(start, end, value, &st, &ed, &val);
+    if (err_code != NO_ERR) return err_code;
 
     err_code = validate_range(st, ed);
     if (err_code != NO_ERR) return err_code;
@@ -73,7 +74,7 @@ int fill(char* start, char* end, char* value, int token_count) {
     err_code = validate_value(val);
     if (err_code != NO_ERR) return err_code;
 
-    for (i = st; i <= ed; i++) MEM[i] = val;
+    for (i = st; i <= ed; i++) MEM[i] = val; 	// fill the value into the memory spaces
     return NO_ERR;
 }
 
@@ -88,23 +89,23 @@ void print_chars(int row) {
     int i;
     for (i = 0; i < 16; i++) {
 	char now = MEM[row * 16 + i];
-        if (now >= 32 && now <= 126) printf("%c", now);
+        if (now >= 32 && now <= 126) printf("%c", now);	// values between 0x20, 0x7E
         else printf(".");
     }
     printf("\n");
 }
 
-// validate one hexa string argument
+// validate one hexadecimal string argument
 int validate_one_hexstr_argument(char* arg1, int* ret1) {
     *ret1 = hexstr_to_int(arg1);
     if (*ret1 == ERR_WRONG_HEXSTR) {
-	printf("ERROR: wrong hexa string to turn into int.\n"); 
+	printf("ERROR: wrong hexadecimal string to turn into int.\n"); 
 	return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;
 }
 
-// validate two hexa string arguments
+// validate two hexadecimal string arguments
 int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) {
     if (arg1[strlen(arg1) - 1] != ',') {
 	printf("ERROR: should use ',' between two arguments.\n");
@@ -114,7 +115,7 @@ int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) 
     *ret1 = hexstr_to_int(arg1);
     *ret2 = hexstr_to_int(arg2);
     if (*ret1 == ERR_WRONG_HEXSTR || *ret2 == ERR_WRONG_HEXSTR) {
-	printf("ERROR: wrong hexa string to turn into int.\n"); 
+	printf("ERROR: wrong hexadecimal string to turn into int.\n"); 
 	return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;    
@@ -133,7 +134,7 @@ int validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
     *ret2 = hexstr_to_int(arg2);
     *ret3 = hexstr_to_int(arg3);
     if (*ret1 == ERR_WRONG_HEXSTR || *ret2 == ERR_WRONG_HEXSTR || *ret3 == ERR_WRONG_HEXSTR) {
-	printf("ERROR: wrong hexa string to turn into int.\n"); 
+	printf("ERROR: wrong hexadecimal string to turn into int.\n"); 
 	return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;    

@@ -7,13 +7,13 @@ int main() {
     while(1) {
 	printf("sicsim> ");
 	scanf("%[^\n]", input);
-	strcpy(log_sentence, input);
-	getchar();
+	strcpy(log_sentence, input);		// copy for push_log
+	getchar();				// flush the buffer
 	tokenize_input();
 	ret = get_command();
 	if (ret != _none) {
 	    if (ret == _quit) break;
-	    if (execute_instructions(ret) == 1)
+	    if (execute_instructions(ret) == 1) // do not make wrong commands in the log 
 		push_log(log_sentence);
 	}
     }
@@ -28,7 +28,7 @@ void flush_tokens(void) {
     TOKEN_COUNT = 0;
 }
 
-// return the next token's first index in input
+// return the input index of next token's first char
 int get_next_token_idx(char* str) {
     int i = 0;
     if (str[i] == '\0') return -1; 			// no more token
@@ -47,14 +47,15 @@ void tokenize_input(void) {
     while (input[start_idx] == ' ') start_idx++;		// remove whitespaces in left
     while (start_idx < MAX_INPUT_LEN) {
 	next_idx = get_next_token_idx(input + start_idx);
-	if (next_idx == -1) break;				// no more tokens
-	if (TOKEN_COUNT >= MAX_TOKENS) break;			// check the limitations
-	if (strlen(input + start_idx) > MAX_TOKEN_LEN) break;
+	if (next_idx == -1) return;				// no more tokens
+	if (TOKEN_COUNT >= MAX_TOKENS) return;			// check the limitations
+	if (strlen(input + start_idx) > MAX_TOKEN_LEN) return;
 	strcpy(tokens[TOKEN_COUNT++], input + start_idx);   	// store the tokens
 	start_idx += next_idx;
     }
 }
 
+// return the command according to input and tokens
 command get_command(void) {
     if (strcmp_twice(input, "h", "help")) return _help;
     else if (strcmp_twice(input, "q", "quit")) return _quit;
@@ -69,6 +70,7 @@ command get_command(void) {
     return _none;
 }
 
+// exectue the instructions according to the command
 int execute_instructions(command c) {
     int succeeded = 1;
     switch(c) {
@@ -115,6 +117,7 @@ int execute_instructions(command c) {
     return succeeded;
 }
 
+// initialize global variables and hash table
 void init(void) {
     HEAD_LOG = NULL;
     TAIL_LOG = NULL;
@@ -123,6 +126,7 @@ void init(void) {
     init_hash_table("opcode.txt");
 }
 
+// free the dynamically allocated memories
 void exit_program(void) {
     free_log();
     free_hash_table();

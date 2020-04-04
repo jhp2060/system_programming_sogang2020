@@ -16,20 +16,23 @@ void help(void) {
 
 // print out the files and directories 
 void dir(void) {
-    DIR *pwd = opendir(".");
+    DIR *pwd = opendir("."); 		// get the present working directory
     struct dirent *pwd_entry = NULL;
     struct stat entry_stat;
 
     if (pwd != NULL) {
-	pwd_entry = readdir(pwd);
+	pwd_entry = readdir(pwd);	// get the entry of pwd
 	while (pwd_entry != NULL) {
 	    printf("%s", pwd_entry->d_name);
-	    lstat(pwd_entry->d_name, &entry_stat);
-	    if (S_IFREG & entry_stat.st_mode) {
-		if (S_IXGRP & entry_stat.st_mode) printf("*");
+	    lstat(pwd_entry->d_name, &entry_stat);		// store the status of the entry
+	    if (S_IFREG & entry_stat.st_mode) {			// regular file
+		if (S_IXUSR & entry_stat.st_mode || S_IXGRP & entry_stat.st_mode
+		    || S_IXOTH & entry_stat.st_mode) 		// execution file
+		    printf("*");	
 		printf("\n");
 	    }
-	    else if (S_IFDIR & entry_stat.st_mode) printf("/\n");
+	    else if (S_IFDIR & entry_stat.st_mode)		// directory
+		printf("/\n"); 	
 	    pwd_entry = readdir(pwd);
 	}
     }
@@ -46,17 +49,16 @@ void history(void) {
     int count = 1;
     while (now != NULL) {
 	printf("%4d %s\n", count++, now->str);
-	if (count > 100) break;
 	now = now->next;
     }
 }
 
-// push the commands into linked list using HEAD_LOG and TAIL_LOG
+// push the commands into linked list(log) using HEAD_LOG and TAIL_LOG
 void push_log(char* string) {
     node* new = malloc(sizeof(node));
     strcpy(new->str, string);
     new->next = NULL;
-    if (TAIL_LOG == NULL) {
+    if (TAIL_LOG == NULL) {	// initialize
 	HEAD_LOG = new;
 	TAIL_LOG = new;
     }

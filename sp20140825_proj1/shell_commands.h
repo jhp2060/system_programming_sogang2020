@@ -15,8 +15,8 @@ typedef struct _node {
     struct _node* next;
 }node;
 
-node* HEAD_LOG;
-node* TAIL_LOG;
+node* HEAD_LOG; // points the head of log
+node* TAIL_LOG; // points the tail of log
 
 void help(void);
 void dir(void);

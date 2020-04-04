@@ -1,10 +1,11 @@
 #include "opcode_commands.h"
 
+// print out the opcode for the mnemonic
 int opcode(char* mnemonic, int token_count) {
     if (token_count != 2) return ERR_WRONG_TOKENS;
     int index = get_hash_index(mnemonic);
     hash* now = HASH_TABLE[index];
-    while (now != NULL) {
+    while (now != NULL) {	// find the opcode
 	if (strcmp(now->mnemonic, mnemonic) == 0) {
 	    printf("opcode is %s\n", now->opcode);
 	    return NO_ERR;
@@ -15,6 +16,7 @@ int opcode(char* mnemonic, int token_count) {
     return ERR_WRONG_MNEMONIC;
 }
 
+// print out the opcde list in the hash table 
 void opcodelist(void) {
     int i;
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
@@ -30,6 +32,7 @@ void opcodelist(void) {
     }
 }
 
+// read the opcodes from a file and make them into hash table
 void init_hash_table(char* filename) {
     int i, hash_index;
     FILE *fp = fopen(filename, "r");
@@ -46,6 +49,7 @@ void init_hash_table(char* filename) {
     free(new);
 }
 
+// hash funciton
 int get_hash_index(char* mnemonic) {
     int i, ret = 0, len = strlen(mnemonic);
     for (i = 0; i < len; i++) ret += mnemonic[i];
@@ -53,6 +57,7 @@ int get_hash_index(char* mnemonic) {
     return ret % 20;
 }
 
+// free the dynamically allocated memories
 void free_hash_table(void) {
     int i;
     hash *now, *next;
