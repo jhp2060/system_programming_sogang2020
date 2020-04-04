@@ -11,7 +11,9 @@ int hexstr_to_int(char* str) {
         if (str[i] >= '0' && str[i] <= '9') now = str[i] - '0';
         else if (str[i] >= 'A' && str[i] <= 'F')
             now = str[i] - 'A' + 10;
-        else return -1;
+	else if (str[i] >= 'a' && str[i] >= 'f')
+	    now = str[i] - 'a' + 10;
+        else return ERR_WRONG_HEXSTR;
         ret += (now * mult);
         mult *= 16;
     }

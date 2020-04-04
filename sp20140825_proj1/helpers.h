@@ -4,15 +4,14 @@
 #include <string.h>
 
 // define the error codes
-typedef enum _error {
-    NO_ERR = 1,
-    ERR_WRONG_HEXSTR,
-    ERR_ARGS_FORMAT,
-    ERR_WRONG_ADDR,
-    ERR_WRONG_VAL,
-    ERR_WRONG_RANGE,
-    ERR_WRONG_TOKENS
-}error;
+#define NO_ERR 1
+#define ERR_WRONG_HEXSTR -1
+#define ERR_ARGS_FORMAT -2
+#define ERR_WRONG_ADDR -3
+#define ERR_WRONG_VAL -4
+#define ERR_WRONG_RANGE -5
+#define ERR_WRONG_TOKENS -6
+#define ERR_WRONG_MNEMONIC -7
 
 int strcmp_twice(char* norm, char* op1, char* op2);
 int hexstr_to_int(char* str);
