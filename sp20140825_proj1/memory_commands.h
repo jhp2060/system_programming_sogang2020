@@ -9,12 +9,11 @@
 
 char MEM[MEM_SIZE];
 int LAST_ADDR;
-int TOKEN_COUNT;
 
 int dump(char* start, char* end, int token_count);
 int edit(char* address, char* value, int token_count);
 int fill(char* start, char* end, char* value, int token_count);
-void reset();
+void reset(void);
 
 // functions for "dump"
 void print_chars(int row);

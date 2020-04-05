@@ -24,5 +24,5 @@ void quit(void);
 void history(void);
 
 void push_log(char* string);
-void free_log();
+void free_log(void);
 #endif

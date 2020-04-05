@@ -69,7 +69,7 @@ void push_log(char* string) {
 }
 
 // free the memory spaces assigned to each node
-void free_log() {
+void free_log(void) {
     node* tmp;
     while (HEAD_LOG != NULL) {
         tmp = HEAD_LOG;

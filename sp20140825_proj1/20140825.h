@@ -17,6 +17,8 @@
 char input[MAX_INPUT_LEN];
 char tokens[MAX_TOKENS][MAX_TOKEN_LEN];
 
+int TOKEN_COUNT;
+
 typedef enum _command {
     _help=0,
     _dir,

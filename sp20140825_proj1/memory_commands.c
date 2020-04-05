@@ -79,7 +79,7 @@ int fill(char* start, char* end, char* value, int token_count) {
 }
 
 // reset all of the memory values as 0
-void reset() {
+void reset(void) {
     int i;
     for (i = 0; i < MEM_SIZE; i++) MEM[i] = 0;
 }
