@@ -54,7 +54,7 @@ int get_hash_index(char* mnemonic) {
     int i, ret = 0, len = strlen(mnemonic);
     for (i = 0; i < len; i++) ret += mnemonic[i];
     if (ret < 0) ret *= -1;
-    return ret % 20;
+    return ret % HASH_TABLE_SIZE;
 }
 
 // free the dynamically allocated memories
