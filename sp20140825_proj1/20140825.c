@@ -57,16 +57,17 @@ void tokenize_input(void) {
 
 // return the command according to input and tokens
 command get_command(void) {
-    if (strcmp_twice(input, "h", "help")) return _help;
-    else if (strcmp_twice(input, "q", "quit")) return _quit;
-    else if (strcmp_twice(input, "d", "dir")) return _dir;
-    else if (strcmp_twice(input, "hi", "history")) return _history;
-    else if (strcmp_twice(tokens[0], "du", "dump")) return _dump;
-    else if (strcmp_twice(tokens[0], "e", "edit")) return _edit;
-    else if (strcmp_twice(tokens[0], "f", "fill")) return _fill;
-    else if (strcmp(input, "reset") == 0) return _reset;
-    else if (strcmp(tokens[0], "opcode") == 0) return _opcode;
-    else if (strcmp(tokens[0], "opcodelist") == 0) return _opcodelist;
+    char* cmd = tokens[0];
+    if (strcmp_twice(cmd, "h", "help") && TOKEN_COUNT == 1) return _help;
+    else if (strcmp_twice(cmd, "q", "quit") && TOKEN_COUNT == 1) return _quit;
+    else if (strcmp_twice(cmd, "d", "dir") && TOKEN_COUNT == 1) return _dir;
+    else if (strcmp_twice(cmd, "hi", "history") && TOKEN_COUNT == 1) return _history;
+    else if (strcmp_twice(cmd, "du", "dump")) return _dump;
+    else if (strcmp_twice(cmd, "e", "edit")) return _edit;
+    else if (strcmp_twice(cmd, "f", "fill")) return _fill;
+    else if (strcmp(cmd, "reset") == 0 && TOKEN_COUNT == 1) return _reset;
+    else if (strcmp(cmd, "opcode") == 0) return _opcode;
+    else if (strcmp(cmd, "opcodelist") == 0 && TOKEN_COUNT == 1) return _opcodelist;
     return _none;
 }
 
