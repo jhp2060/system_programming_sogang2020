@@ -33,6 +33,7 @@ typedef enum _command {
     _none
 }command;
 
+void flush_input(void);
 void flush_tokens(void);
 int get_next_token_idx(char* str);
 void tokenize_input(void);

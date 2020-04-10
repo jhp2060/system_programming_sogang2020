@@ -5,6 +5,7 @@ int main() {
     init();
     command ret;
     while(1) {
+	flush_input();
 	printf("sicsim> ");
 	scanf("%[^\n]", input);
 	strcpy(log_sentence, input);		// copy for push_log
@@ -19,6 +20,10 @@ int main() {
     }
     exit_program();
     return 0; 
+}
+
+void flush_input(void) {
+    input[0] = '\0';
 }
 
 // flush the tokens before getting new tokens
