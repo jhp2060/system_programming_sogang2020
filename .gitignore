@@ -9,3 +9,4 @@
 .vim/
 *.out
 *.o
+*.tar
