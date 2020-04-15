@@ -65,6 +65,7 @@ error history(int token_count) {
 
 // print out a file
 error type(char* filename, int token_count) {
+    if (token_count != 2) return ERR_WRONG_TOKENS;
     DIR* dir = opendir(filename);
     if (dir) return ERR_NOT_A_FILE;
     FILE* fp = fopen(filename, "r");  

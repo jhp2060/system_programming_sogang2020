@@ -22,7 +22,8 @@ char tokens[MAX_TOKENS][MAX_TOKEN_LEN];
 int TOKEN_COUNT;
 
 typedef enum _command {
-    _help=0,
+    _none=0,
+    _help,
     _dir,
     _quit, 
     _history, 
@@ -32,7 +33,9 @@ typedef enum _command {
     _reset, 
     _opcode, 
     _opcodelist, 
-    _none
+    _assemble,
+    _type,
+    _symbol,
 }command;
 
 void flush_input(void);

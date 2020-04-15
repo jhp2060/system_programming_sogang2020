@@ -75,6 +75,7 @@ command get_command(void) {
     else if (strcmp(cmd, "reset") == 0) return _reset;
     else if (strcmp(cmd, "opcode") == 0) return _opcode;
     else if (strcmp(cmd, "opcodelist") == 0) return _opcodelist;
+    else if (strcmp(cmd, "type") == 0) return _type;
     return _none;
 }
 
@@ -113,6 +114,9 @@ error execute_instructions(command c) {
 	break;
     case _opcodelist:
 	e = opcodelist(TOKEN_COUNT);
+	break;
+    case _type:
+	e = type(tokens[1], TOKEN_COUNT);
 	break;
     default:
 	e = ERR_WRONG_COMMAND;

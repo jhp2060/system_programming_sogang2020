@@ -48,6 +48,7 @@ void init_hash_table(char* filename) {
 	new = malloc(sizeof(hash));
     }
     free(new);
+    fclose(fp);
 }
 
 // hash funciton
