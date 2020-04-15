@@ -1,7 +1,8 @@
 #include "shell_commands.h"
 
 // print out help text for commands
-void help(void) {
+error help(int token_count) {
+    if (token_count != 1) return ERR_WRONG_TOKENS;
     printf("h[elp]\n");
     printf("d[ir]\n");
     printf("q[uit]\n");
@@ -12,10 +13,12 @@ void help(void) {
     printf("reset\n");
     printf("opcode mnemonic\n");
     printf("opcodelist\n");
+    return NO_ERR;
 }
 
 // print out the files and directories 
-void dir(void) {
+error dir(int token_count) {
+    if (token_count != 1) return ERR_WRONG_TOKENS;
     DIR *pwd = opendir("."); 		// get the present working directory
     struct dirent *pwd_entry = NULL;
     struct stat entry_stat;
@@ -36,21 +39,25 @@ void dir(void) {
 	    pwd_entry = readdir(pwd);
 	}
     }
+    return NO_ERR;
 }
 
 // exit the shell program
-void quit(void) {
-    return;
+error quit(int token_count) {
+    if (token_count != 1) return ERR_WRONG_TOKENS;
+    return NO_ERR;
 }
 
 // print out the LOGs
-void history(void) {
+error history(int token_count) {
+    if (token_count != 1) return ERR_WRONG_TOKENS;
     node* now = HEAD_LOG;
     int count = 1;
     while (now != NULL) {
 	printf("%4d %s\n", count++, now->str);
 	now = now->next;
     }
+    return NO_ERR_HISTORY;
 }
 
 // push the commands into linked list(log) using HEAD_LOG and TAIL_LOG

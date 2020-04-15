@@ -24,6 +24,9 @@ int hexstr_to_int(char* str) {
 
 void print_error_msg(error e){
     switch(e) {
+    case NO_ERR:
+    case NO_ERR_HISTORY:
+	break;
     case ERR_WRONG_COMMAND:
 	printf("ERROR: wrong command to execute.\n");
 	break;
@@ -41,6 +44,12 @@ void print_error_msg(error e){
 	break;
     case ERR_WRONG_RANGE:
 	printf("ERROR: wrong range.\n");
+	break;
+    case ERR_WRONG_TOKENS:
+	printf("ERROR: wrong argument numbers.\n");
+	break;
+    case ERR_WRONG_MNEMONIC:
+	printf("ERROR: no opcode for that mnemonic.\n"); 
 	break;
     default:
 	break;

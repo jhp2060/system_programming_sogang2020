@@ -79,9 +79,11 @@ error fill(char* start, char* end, char* value, int token_count) {
 }
 
 // reset all of the memory values as 0
-void reset(void) {
+error reset(int token_count) {
+    if (token_count != 1) return ERR_WRONG_TOKENS;
     int i;
     for (i = 0; i < MEM_SIZE; i++) MEM[i] = 0;
+    return NO_ERR;
 }
 
 // print out the values of MEM, in the character format

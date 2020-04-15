@@ -13,7 +13,7 @@ int LAST_ADDR;
 error dump(char* start, char* end, int token_count);
 error edit(char* address, char* value, int token_count);
 error fill(char* start, char* end, char* value, int token_count);
-void reset(void);
+error reset(int token_count);
 
 // functions for "dump"
 void print_chars(int row);

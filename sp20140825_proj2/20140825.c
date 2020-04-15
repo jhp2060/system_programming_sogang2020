@@ -13,14 +13,12 @@ int main() {
 	getchar();				// flush the buffer
 	tokenize_input();
 	ret = get_command();
-	if (ret != _none) {
-	    if (ret == _quit) break;
-	    e = execute_instructions(ret);
-	    if (e == NO_ERR) // do not make wrong commands in the log 
-		push_log(log_sentence);
-	    else
-		print_error_msg(e);
-	}
+	e = execute_instructions(ret);
+	if (ret == _quit && e == NO_ERR) break;
+	if (e == NO_ERR) // do not make wrong commands in the log 
+	    push_log(log_sentence);
+	else
+	    print_error_msg(e);
     }
     exit_program();
     return 0; 
@@ -67,36 +65,36 @@ void tokenize_input(void) {
 // return the command according to input and tokens
 command get_command(void) {
     char* cmd = tokens[0];
-    if (strcmp_twice(cmd, "h", "help") && TOKEN_COUNT == 1) return _help;
-    else if (strcmp_twice(cmd, "q", "quit") && TOKEN_COUNT == 1) return _quit;
-    else if (strcmp_twice(cmd, "d", "dir") && TOKEN_COUNT == 1) return _dir;
-    else if (strcmp_twice(cmd, "hi", "history") && TOKEN_COUNT == 1) return _history;
+    if (strcmp_twice(cmd, "h", "help")) return _help;
+    else if (strcmp_twice(cmd, "q", "quit")) return _quit;
+    else if (strcmp_twice(cmd, "d", "dir")) return _dir;
+    else if (strcmp_twice(cmd, "hi", "history")) return _history;
     else if (strcmp_twice(cmd, "du", "dump")) return _dump;
     else if (strcmp_twice(cmd, "e", "edit")) return _edit;
     else if (strcmp_twice(cmd, "f", "fill")) return _fill;
-    else if (strcmp(cmd, "reset") == 0 && TOKEN_COUNT == 1) return _reset;
+    else if (strcmp(cmd, "reset") == 0) return _reset;
     else if (strcmp(cmd, "opcode") == 0) return _opcode;
-    else if (strcmp(cmd, "opcodelist") == 0 && TOKEN_COUNT == 1) return _opcodelist;
+    else if (strcmp(cmd, "opcodelist") == 0) return _opcodelist;
     return _none;
 }
 
 // exectue the instructions according to the command
 error execute_instructions(command c) {
-    error e = NO_ERR;
+    error e;
     switch(c) {
     case _help:
-	help();
+	e = help(TOKEN_COUNT);
 	break;
     case _quit:
-	quit();
+	e = quit(TOKEN_COUNT);
 	break;
     case _dir:
-	dir();
+	e = dir(TOKEN_COUNT);
 	break;
     case _history:
-	push_log(tokens[0]);
-	history();
-	e = HISTORY;
+	if (TOKEN_COUNT == 1)
+	    push_log(tokens[0]);
+	e = history(TOKEN_COUNT);
 	break;
     case _dump:
 	e = dump(tokens[1], tokens[2], TOKEN_COUNT);
@@ -108,13 +106,13 @@ error execute_instructions(command c) {
 	e = fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT);
 	break;
     case _reset:
-	reset();
+	reset(TOKEN_COUNT);
 	break;
     case _opcode:
 	e = opcode(tokens[1], TOKEN_COUNT);
 	break;
     case _opcodelist:
-	opcodelist();
+	e = opcodelist(TOKEN_COUNT);
 	break;
     default:
 	e = ERR_WRONG_COMMAND;
@@ -129,7 +127,7 @@ void init(void) {
     TAIL_LOG = NULL;
     TOKEN_COUNT = 0;
     LAST_ADDR = -1;
-    init_hash_table("opcode.txt");
+    init_hash_table(OPCODE_FILENAME);
 }
 
 // free the dynamically allocated memories

@@ -7,7 +7,7 @@
 // define the error codes
 typedef enum _error {
     NO_ERR=0,
-    HISTORY,
+    NO_ERR_HISTORY,
     ERR_WRONG_COMMAND,
     ERR_WRONG_HEXSTR,
     ERR_ARGS_FORMAT,

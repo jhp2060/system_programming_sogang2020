@@ -12,12 +12,12 @@ error opcode(char* mnemonic, int token_count) {
 	}	
 	now = now->next;
     }   
-    printf("ERROR: no opcode for the mnemonic %s.\n", mnemonic);
     return ERR_WRONG_MNEMONIC;
 }
 
 // print out the opcde list in the hash table 
-void opcodelist(void) {
+error opcodelist(int token_count) {
+    if (token_count != 1) return ERR_WRONG_TOKENS;
     int i;
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
 	printf("%d : ", i);
@@ -28,8 +28,9 @@ void opcodelist(void) {
 	    if (now == NULL) break;
 	    printf(" -> ");
 	}
-	printf("\n");	
+	printf("\n");
     }
+    return NO_ERR;
 }
 
 // read the opcodes from a file and make them into hash table

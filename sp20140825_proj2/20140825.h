@@ -14,6 +14,8 @@
 #define MAX_TOKEN_LEN 20
 #define MAX_TOKENS 10
 
+#define OPCODE_FILENAME "opcode.txt"
+
 char input[MAX_INPUT_LEN];
 char tokens[MAX_TOKENS][MAX_TOKEN_LEN];
 
