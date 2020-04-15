@@ -21,3 +21,28 @@ int hexstr_to_int(char* str) {
     }
     return ret;
 }
+
+void print_error_msg(error e){
+    switch(e) {
+    case ERR_WRONG_COMMAND:
+	printf("ERROR: wrong command to execute.\n");
+	break;
+    case ERR_WRONG_HEXSTR:
+	printf("ERROR: wrong hexadecimal string to turn into int.\n");
+	break;
+    case ERR_ARGS_FORMAT:
+	printf("ERROR: should use ',' between two arguments.\n");
+	break;
+    case ERR_WRONG_ADDR:
+	printf("ERROR: wrong address to access.\n");
+	break;
+    case ERR_WRONG_VAL:
+	printf("ERROR: wrong value to store.\n");
+	break;
+    case ERR_WRONG_RANGE:
+	printf("ERROR: wrong range.\n");
+	break;
+    default:
+	break;
+    }
+}

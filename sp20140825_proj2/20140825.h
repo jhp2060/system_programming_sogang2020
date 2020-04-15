@@ -39,7 +39,7 @@ int get_next_token_idx(char* str);
 void tokenize_input(void);
 
 command get_command(void);
-int execute_instructions(command c);
+error execute_instructions(command c);
 void init(void);
 void exit_program(void);
 

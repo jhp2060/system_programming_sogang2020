@@ -2,6 +2,7 @@
 
 int main() {
     char log_sentence[100];
+    error e;
     init();
     command ret;
     while(1) {
@@ -14,8 +15,11 @@ int main() {
 	ret = get_command();
 	if (ret != _none) {
 	    if (ret == _quit) break;
-	    if (execute_instructions(ret) == 1) // do not make wrong commands in the log 
+	    e = execute_instructions(ret);
+	    if (e == NO_ERR) // do not make wrong commands in the log 
 		push_log(log_sentence);
+	    else
+		print_error_msg(e);
 	}
     }
     exit_program();
@@ -77,8 +81,8 @@ command get_command(void) {
 }
 
 // exectue the instructions according to the command
-int execute_instructions(command c) {
-    int succeeded = 1;
+error execute_instructions(command c) {
+    error e = NO_ERR;
     switch(c) {
     case _help:
 	help();
@@ -92,35 +96,31 @@ int execute_instructions(command c) {
     case _history:
 	push_log(tokens[0]);
 	history();
-	succeeded = 0;
+	e = HISTORY;
 	break;
     case _dump:
-        if (dump(tokens[1], tokens[2], TOKEN_COUNT) != NO_ERR) 
-	    succeeded = 0;
+	e = dump(tokens[1], tokens[2], TOKEN_COUNT);
         break;
     case _edit:
-	if (edit(tokens[1], tokens[2], TOKEN_COUNT) != NO_ERR)
-	    succeeded = 0;
+	e = edit(tokens[1], tokens[2], TOKEN_COUNT);
 	break;
     case _fill:
-	if (fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT) != NO_ERR)
-	    succeeded = 0;
+	e = fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT);
 	break;
     case _reset:
 	reset();
 	break;
     case _opcode:
-	if (opcode(tokens[1], TOKEN_COUNT) != NO_ERR)
-	    succeeded = 0;
+	e = opcode(tokens[1], TOKEN_COUNT);
 	break;
     case _opcodelist:
 	opcodelist();
 	break;
     default:
-	succeeded = 0;
+	e = ERR_WRONG_COMMAND;
 	break;
     }
-    return succeeded;
+    return e;
 }
 
 // initialize global variables and hash table

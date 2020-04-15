@@ -19,7 +19,7 @@ typedef struct _hash {
 
 hash* HASH_TABLE[HASH_TABLE_SIZE];
 
-int opcode(char* mnemonic, int token_count);
+error opcode(char* mnemonic, int token_count);
 void opcodelist(void);
 
 // functions about hashing

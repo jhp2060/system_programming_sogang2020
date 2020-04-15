@@ -2,18 +2,24 @@
 #define HELPERS_H
 
 #include <string.h>
+#include <stdio.h>
 
 // define the error codes
-#define NO_ERR 1
-#define ERR_WRONG_HEXSTR -1
-#define ERR_ARGS_FORMAT -2
-#define ERR_WRONG_ADDR -3
-#define ERR_WRONG_VAL -4
-#define ERR_WRONG_RANGE -5
-#define ERR_WRONG_TOKENS -6
-#define ERR_WRONG_MNEMONIC -7
+typedef enum _error {
+    NO_ERR=0,
+    HISTORY,
+    ERR_WRONG_COMMAND,
+    ERR_WRONG_HEXSTR,
+    ERR_ARGS_FORMAT,
+    ERR_WRONG_ADDR,
+    ERR_WRONG_VAL,
+    ERR_WRONG_RANGE,
+    ERR_WRONG_TOKENS,
+    ERR_WRONG_MNEMONIC,
+}error;
 
 int strcmp_twice(char* norm, char* op1, char* op2);
 int hexstr_to_int(char* str);
+void print_error_msg(error e);
 
 #endif

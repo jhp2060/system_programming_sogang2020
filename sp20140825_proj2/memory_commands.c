@@ -1,7 +1,7 @@
 #include "memory_commands.h"
 
 // print out the memory between start and end
-int dump(char* start, char* end, int token_count) {
+error dump(char* start, char* end, int token_count) {
     int row, col;
     int st, ed, err_code;
     
@@ -44,7 +44,7 @@ int dump(char* start, char* end, int token_count) {
 }
 
 // edit the value of memory at the address
-int edit(char* address, char* value, int token_count) {
+error edit(char* address, char* value, int token_count) {
     if (token_count != 3) return ERR_WRONG_TOKENS;
     int addr, val;
     int err_code = validate_two_hexstr_arguments(address, value, &addr, &val);
@@ -61,7 +61,7 @@ int edit(char* address, char* value, int token_count) {
 }
 
 // fill the memory spaces between start and end with a value
-int fill(char* start, char* end, char* value, int token_count) {
+error fill(char* start, char* end, char* value, int token_count) {
     if (token_count != 4) return ERR_WRONG_TOKENS;
 
     int st, ed, val, i;
@@ -96,36 +96,32 @@ void print_chars(int row) {
 }
 
 // validate one hexadecimal string argument
-int validate_one_hexstr_argument(char* arg1, int* ret1) {
+error validate_one_hexstr_argument(char* arg1, int* ret1) {
     *ret1 = hexstr_to_int(arg1);
     if (*ret1 == ERR_WRONG_HEXSTR) {
-	printf("ERROR: wrong hexadecimal string to turn into int.\n"); 
 	return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;
 }
 
 // validate two hexadecimal string arguments
-int validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) {
+error validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) {
     if (arg1[strlen(arg1) - 1] != ',') {
-	printf("ERROR: should use ',' between two arguments.\n");
 	return ERR_ARGS_FORMAT;
     }
     arg1[strlen(arg1) - 1] = '\0';
     *ret1 = hexstr_to_int(arg1);
     *ret2 = hexstr_to_int(arg2);
     if (*ret1 == ERR_WRONG_HEXSTR || *ret2 == ERR_WRONG_HEXSTR) {
-	printf("ERROR: wrong hexadecimal string to turn into int.\n"); 
 	return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;    
 }
 
 // validate three hexa string arguments
-int validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
+error validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
 				int* ret1, int* ret2, int* ret3) {
     if (arg1[strlen(arg1) - 1] != ',' || arg2[strlen(arg2) - 1] != ',') {
-	printf("ERROR: should use ',' between two arguments.\n");
 	return ERR_ARGS_FORMAT;
     }
     arg1[strlen(arg1) - 1] = '\0';
@@ -134,36 +130,32 @@ int validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
     *ret2 = hexstr_to_int(arg2);
     *ret3 = hexstr_to_int(arg3);
     if (*ret1 == ERR_WRONG_HEXSTR || *ret2 == ERR_WRONG_HEXSTR || *ret3 == ERR_WRONG_HEXSTR) {
-	printf("ERROR: wrong hexadecimal string to turn into int.\n"); 
 	return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;    
 }
 
 // validate adddress not to make underflow or overflow which leads to segmentation fault
-int validate_address(int address) {
+error validate_address(int address) {
     if (address < 0 || address >= MEM_SIZE) {
-	printf("ERROR: wrong address to access.\n");
 	return ERR_WRONG_ADDR;	
     }
     return NO_ERR;
 }
 
 // validate a value to be in the range between 0x00 and 0xFF
-int validate_value(int value) {
+error validate_value(int value) {
     if (value < 0 || value > 255 ) {
-	printf("ERROR: wrong value to store.\n");
 	return ERR_WRONG_VAL;
     }
     return NO_ERR;
 }
 
 // validate the addresses and the range between start and end
-int validate_range(int start, int end) {
+error validate_range(int start, int end) {
     if (validate_address(start) != NO_ERR) return ERR_WRONG_ADDR;
     if (validate_address(end) != NO_ERR) return ERR_WRONG_ADDR;
     if (start > end) {
-	printf("ERROR: wrong range.\n");
 	return ERR_WRONG_RANGE;
     }
     return NO_ERR;	

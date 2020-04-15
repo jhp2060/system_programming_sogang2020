@@ -1,7 +1,7 @@
 #include "opcode_commands.h"
 
 // print out the opcode for the mnemonic
-int opcode(char* mnemonic, int token_count) {
+error opcode(char* mnemonic, int token_count) {
     if (token_count != 2) return ERR_WRONG_TOKENS;
     int index = get_hash_index(mnemonic);
     hash* now = HASH_TABLE[index];
