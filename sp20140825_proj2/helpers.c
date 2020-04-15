@@ -51,6 +51,9 @@ void print_error_msg(error e){
     case ERR_WRONG_MNEMONIC:
 	printf("ERROR: no opcode for that mnemonic.\n"); 
 	break;
+    case ERR_NOT_A_FILE:
+	printf("ERROR: no file to open.\n");
+	break;
     default:
 	break;
     }

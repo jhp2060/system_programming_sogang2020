@@ -22,6 +22,7 @@ error help(int token_count);
 error dir(int token_count);
 error quit(int token_count);
 error history(int token_count);
+error type(char* filename, int token_count);
 
 void push_log(char* string);
 void free_log(void);

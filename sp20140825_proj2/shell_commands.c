@@ -13,6 +13,9 @@ error help(int token_count) {
     printf("reset\n");
     printf("opcode mnemonic\n");
     printf("opcodelist\n");
+    printf("assemble filename\n");
+    printf("type filename\n");
+    printf("symbol\n");
     return NO_ERR;
 }
 
@@ -58,6 +61,23 @@ error history(int token_count) {
 	now = now->next;
     }
     return NO_ERR_HISTORY;
+}
+
+// print out a file
+error type(char* filename, int token_count) {
+    DIR* dir = opendir(filename);
+    if (dir) return ERR_NOT_A_FILE;
+    FILE* fp = fopen(filename, "r");  
+    char c;
+    if (!fp) return ERR_NOT_A_FILE;
+    while (1) {
+	c = fgetc(fp);
+	if (c == EOF) break;
+	printf("%c", c);
+    }
+    printf("\n");
+    fclose(fp);
+    return NO_ERR;   
 }
 
 // push the commands into linked list(log) using HEAD_LOG and TAIL_LOG
