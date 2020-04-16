@@ -9,6 +9,7 @@
 #include "shell_commands.h"
 #include "memory_commands.h"
 #include "opcode_commands.h"
+#include "assembler_commands.h"
 
 #define MAX_INPUT_LEN 100
 #define MAX_TOKEN_LEN 20
