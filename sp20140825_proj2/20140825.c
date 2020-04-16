@@ -39,10 +39,10 @@ void flush_tokens(void) {
 int get_next_token_idx(char* str) {
     int i = 0;
     if (str[i] == '\0') return -1; 			// no more token
-    while (str[i] != ' ' && str[i] != '\0') i++;	// get the next token's first idx
+    while (str[i] != ' ' && str[i] != '\t' && str[i] != '\0') i++;	// get the next token's first idx
     if (str[i] == '\0') return i;
     str[i++] = '\0'; 	                                // separate the tokens using a null char
-    while (str[i] == ' ') i++;
+    while (str[i] == ' ' || str[i] == '\t') i++;
     return i;
 }
 
@@ -51,7 +51,7 @@ void tokenize_input(void) {
     int start_idx = 0, next_idx = 0;
     flush_tokens();
     
-    while (input[start_idx] == ' ') start_idx++;		// remove whitespaces in left
+    while (input[start_idx] == ' ' || input[start_idx] == '\t') start_idx++;		// remove whitespaces in left
     while (start_idx < MAX_INPUT_LEN) {
 	next_idx = get_next_token_idx(input + start_idx);
 	if (next_idx == -1) return;				// no more tokens
