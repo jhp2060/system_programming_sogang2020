@@ -54,6 +54,9 @@ void print_error_msg(error e){
     case ERR_NOT_A_FILE:
 	printf("ERROR: no file to open.\n");
 	break;
+    case ERR_NOT_A_ASM_FILE:
+	printf("ERROR: not an .asm file.\n");
+	break;
     default:
 	break;
     }
