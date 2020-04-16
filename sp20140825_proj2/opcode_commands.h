@@ -8,7 +8,7 @@
 #define MAX_OPCODE_LEN 3
 #define MAX_MNEMONIC_LEN 10
 #define MAX_FORMAT_LEN 10
-#define HASH_TABLE_SIZE 20
+#define OPTAB_SIZE 20
 
 typedef struct _hash {
     char opcode[MAX_OPCODE_LEN];
@@ -17,13 +17,13 @@ typedef struct _hash {
     struct _hash *next;
 }hash;
 
-hash* HASH_TABLE[HASH_TABLE_SIZE];
+hash* OPTAB[OPTAB_SIZE];
 
 error opcode(char* mnemonic, int token_count);
 error opcodelist(int token_count);
 
 // functions about hashing
-void init_hash_table(char* filename);
+void init_optab(char* filename);
 int get_hash_index(char* mnemonic);
 void free_hash_table(void);
 

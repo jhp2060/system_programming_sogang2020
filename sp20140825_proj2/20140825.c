@@ -135,7 +135,7 @@ void init(void) {
     TAIL_LOG = NULL;
     TOKEN_COUNT = 0;
     LAST_ADDR = -1;
-    init_hash_table(OPCODE_FILENAME);
+    init_optab(OPCODE_FILENAME);
 }
 
 // free the dynamically allocated memories
