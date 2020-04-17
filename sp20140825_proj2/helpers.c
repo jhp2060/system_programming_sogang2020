@@ -61,3 +61,7 @@ void print_error_msg(error e){
 	break;
     }
 }
+
+int is_nullstr(char* str) {
+    return (*(str) == '\0');
+}
