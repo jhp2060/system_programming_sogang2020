@@ -14,7 +14,7 @@ int main() {
 	tokenize_input();
 	ret = get_command();
 	e = execute_instructions(ret);
-	if (ret == _quit && e == NO_ERR) break;
+	if (ret == CMD_QUIT && e == NO_ERR) break;
 	if (e == NO_ERR) // do not make wrong commands in the log 
 	    push_log(log_sentence);
 	else
