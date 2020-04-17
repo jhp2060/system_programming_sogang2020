@@ -5,13 +5,12 @@
 #include <stdlib.h>
 #include "helpers.h"
 
-#define MAX_OPCODE_LEN 3
 #define MAX_MNEMONIC_LEN 10
 #define MAX_FORMAT_LEN 10
 #define OPTAB_SIZE 20
 
 typedef struct _hash {
-    char opcode[MAX_OPCODE_LEN];
+    char opcode[3];
     char mnemonic[MAX_MNEMONIC_LEN];
     char format[MAX_FORMAT_LEN];
     struct _hash *next;
