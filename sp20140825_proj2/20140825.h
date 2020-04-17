@@ -23,20 +23,20 @@ char tokens[MAX_TOKENS][MAX_TOKEN_LEN];
 int TOKEN_COUNT;
 
 typedef enum _command {
-    _none=0,
-    _help,
-    _dir,
-    _quit, 
-    _history, 
-    _dump, 
-    _edit, 
-    _fill, 
-    _reset, 
-    _opcode, 
-    _opcodelist, 
-    _assemble,
-    _type,
-    _symbol,
+    CMD_NONE=0,
+    CMD_HELP,
+    CMD_DIR,
+    CMD_QUIT, 
+    CMD_HISTORY, 
+    CMD_DUMP, 
+    CMD_EDIT, 
+    CMD_FILL, 
+    CMD_RESET, 
+    CMD_OPCODE, 
+    CMD_OPCODELIST, 
+    CMD_ASSEMBLE,
+    CMD_TYPE,
+    CMD_SYMBOL,
 }command;
 
 void flush_input(void);

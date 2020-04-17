@@ -65,61 +65,61 @@ void tokenize_input(void) {
 // return the command according to input and tokens
 command get_command(void) {
     char* cmd = tokens[0];
-    if (strcmp_twice(cmd, "h", "help")) return _help;
-    else if (strcmp_twice(cmd, "q", "quit")) return _quit;
-    else if (strcmp_twice(cmd, "d", "dir")) return _dir;
-    else if (strcmp_twice(cmd, "hi", "history")) return _history;
-    else if (strcmp_twice(cmd, "du", "dump")) return _dump;
-    else if (strcmp_twice(cmd, "e", "edit")) return _edit;
-    else if (strcmp_twice(cmd, "f", "fill")) return _fill;
-    else if (strcmp(cmd, "reset") == 0) return _reset;
-    else if (strcmp(cmd, "opcode") == 0) return _opcode;
-    else if (strcmp(cmd, "opcodelist") == 0) return _opcodelist;
-    else if (strcmp(cmd, "assemble") == 0) return _assemble;
-    else if (strcmp(cmd, "type") == 0) return _type;
-    return _none;
+    if (strcmp_twice(cmd, "h", "help")) return CMD_HELP;
+    else if (strcmp_twice(cmd, "q", "quit")) return CMD_QUIT;
+    else if (strcmp_twice(cmd, "d", "dir")) return CMD_DIR;
+    else if (strcmp_twice(cmd, "hi", "history")) return CMD_HISTORY;
+    else if (strcmp_twice(cmd, "du", "dump")) return CMD_DUMP;
+    else if (strcmp_twice(cmd, "e", "edit")) return CMD_EDIT;
+    else if (strcmp_twice(cmd, "f", "fill")) return CMD_FILL;
+    else if (strcmp(cmd, "reset") == 0) return CMD_RESET;
+    else if (strcmp(cmd, "opcode") == 0) return CMD_OPCODE;
+    else if (strcmp(cmd, "opcodelist") == 0) return CMD_OPCODELIST;
+    else if (strcmp(cmd, "assemble") == 0) return CMD_ASSEMBLE;
+    else if (strcmp(cmd, "type") == 0) return CMD_TYPE;
+    return CMD_NONE;
 }
 
 // exectue the instructions according to the command
 error execute_instructions(command c) {
     error e;
     switch(c) {
-    case _help:
+    case CMD_HELP:
 	e = help(TOKEN_COUNT);
 	break;
-    case _quit:
+    case CMD_QUIT:
 	e = quit(TOKEN_COUNT);
 	break;
-    case _dir:
+    case CMD_DIR:
 	e = dir(TOKEN_COUNT);
 	break;
-    case _history:
+    case CMD_HISTORY:
 	if (TOKEN_COUNT == 1)
 	    push_log(tokens[0]);
 	e = history(TOKEN_COUNT);
 	break;
-    case _dump:
+    case CMD_DUMP:
 	e = dump(tokens[1], tokens[2], TOKEN_COUNT);
         break;
-    case _edit:
+    case CMD_EDIT:
 	e = edit(tokens[1], tokens[2], TOKEN_COUNT);
 	break;
-    case _fill:
+    case CMD_FILL:
 	e = fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT);
 	break;
-    case _reset:
+    case CMD_RESET:
 	reset(TOKEN_COUNT);
 	break;
-    case _opcode:
+    case CMD_OPCODE:
 	e = opcode(tokens[1], TOKEN_COUNT);
 	break;
-    case _opcodelist:
+    case CMD_OPCODELIST:
 	e = opcodelist(TOKEN_COUNT);
 	break;
-    case _assemble:
+    case CMD_ASSEMBLE:
 	e = assemble(tokens[1], TOKEN_COUNT);
 	break;
-    case _type:
+    case CMD_TYPE:
 	e = type(tokens[1], TOKEN_COUNT);
 	break;
     default:
