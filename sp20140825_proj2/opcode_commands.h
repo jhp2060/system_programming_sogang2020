@@ -10,7 +10,7 @@
 #define OPTAB_SIZE 20
 
 typedef struct _opcode_node{
-    char opcode[3];
+    int opcode;
     char mnemonic[MAX_MNEMONIC_LEN];
     char format[MAX_FORMAT_LEN];
     struct _opcode_node* next;

@@ -5,7 +5,7 @@ error opcode(char* mnemonic, int token_count) {
     if (token_count != 2) return ERR_WRONG_TOKENS;
     opcode_node* now = get_opcode(mnemonic);
     if (!now) return ERR_WRONG_MNEMONIC;
-    printf("opcode is %s\n", now->opcode);
+    printf("opcode is %02X\n", now->opcode);
     return NO_ERR;
 }
 
@@ -17,7 +17,7 @@ error opcodelist(int token_count) {
 	printf("%d : ", i);
 	opcode_node* now = OPTAB[i];
 	while (now != NULL) {
-	    printf("[%s,%s]", now->mnemonic, now->opcode);
+	    printf("[%s,%02X]", now->mnemonic, now->opcode);
 	    now = now->next;
 	    if (now == NULL) break;
 	    printf(" -> ");
@@ -35,7 +35,7 @@ void init_optab(char* filename) {
     
     // initialize OPTAB
     for (i = 0; i < OPTAB_SIZE; i++) OPTAB[i] = NULL;
-    while(fscanf(fp, "%s%s%s", new->opcode, new->mnemonic, new->format) != EOF) {
+    while(fscanf(fp, "%X%s%s", &new->opcode, new->mnemonic, new->format) != EOF) {
 	optab_index = get_optab_index(new->mnemonic);
 	new->next = OPTAB[optab_index];
 	OPTAB[optab_index] = new;
