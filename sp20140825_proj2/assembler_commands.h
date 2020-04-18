@@ -41,8 +41,8 @@ sym_node* RECENT_SYMTAB;
 error assemble(char* filename, int token_count);
 
 // functions for assemble
-error pass1(FILE* fp, int* program_length);
-error pass2(void);
+error pass1(FILE* fp, int* program_length, char* program_name);
+error pass2(char* prefix);
 
 void read_line(FILE* fp, char* line);
 linetype parse(char* line, char* label, char* opcode, char* op1, char* op2);

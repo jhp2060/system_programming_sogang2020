@@ -2,7 +2,8 @@
 
 error assemble(char* filename, int token_count) {
     if (token_count != 2) return ERR_WRONG_TOKENS;
-    
+   
+    char program_name[MAX_LINE_LEN]; 
     FILE* fp = fopen(filename, "r");
     int len = strlen(filename), program_length;
     DIR* dir = opendir(filename);
@@ -12,14 +13,14 @@ error assemble(char* filename, int token_count) {
     if (len < 5 || strcmp(filename + len - 4, ".asm") || dir)
 	return ERR_NOT_A_ASM_FILE; 
     
-    e = pass1(fp, &program_length);
+    e = pass1(fp, &program_length, program_name);
     if (e != NO_ERR) {
 	free_symtab(SYMTAB);
 	return e; 
     }
     fclose(fp);
  
-    e = pass2();
+    e = pass2(program_name);
     if (e != NO_ERR) {
 	free_symtab(SYMTAB);
 	return e; 
@@ -33,7 +34,7 @@ error assemble(char* filename, int token_count) {
 }
 
 // pass1 of assembler
-error pass1(FILE* fp, int* program_length) {
+error pass1(FILE* fp, int* program_length, char* program_name) {
     if (!fp) return ERR_NOT_A_FILE;
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
@@ -51,6 +52,7 @@ error pass1(FILE* fp, int* program_length) {
     if (lt == LT_START) {
 	starting_address = atoi(opcode);
 	locctr = starting_address;
+	strcpy(program_name, label);
 	fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
 	
 	// read next line
@@ -99,9 +101,20 @@ error pass1(FILE* fp, int* program_length) {
 }
 
 
-error pass2() {
+error pass2(char* prefix) {
+    FILE *fp = fopen(ITM_FILE, "r");
+    FILE *lstfp, *objfp; 
+    char filename[MAX_LINE_LEN];
+    strcpy(filename, prefix);
+    lstfp = fopen(strcat(filename, ".lst"), "w");
+    strcpy(filename, prefix);
+    objfp = fopen(strcat(filename, ".obj"), "w");
+    fclose(lstfp);
+    fclose(objfp);
 
-    return NO_ERR;
+ 
+
+    return delete_file(fp, ITM_FILE, NO_ERR);
 }
 
 
