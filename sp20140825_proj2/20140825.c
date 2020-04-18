@@ -136,10 +136,12 @@ void init(void) {
     TOKEN_COUNT = 0;
     LAST_ADDR = -1;
     init_optab(OPCODE_FILENAME);
+    init_symtab();
 }
 
 // free the dynamically allocated memories
 void exit_program(void) {
     free_log();
-    free_hash_table();
+    free_optab();
+    free_symtab();
 }

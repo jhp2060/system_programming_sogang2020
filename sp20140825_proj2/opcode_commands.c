@@ -54,7 +54,7 @@ int get_optab_index(char* mnemonic) {
 }
 
 // free the dynamically allocated memories
-void free_opta(void) {
+void free_optab(void) {
     int i;
     opcode_node *now, *next;
     for (i = 0; i < OPTAB_SIZE; i++) {
