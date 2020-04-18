@@ -21,7 +21,8 @@ error assemble(char* filename, int token_count) {
 error pass1(FILE* fp, int* program_length) {
     if (!fp) return ERR_NOT_A_FILE;
     char line[MAX_LINE_LEN];
-    char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN], operands[MAX_OPERANDS_LEN];
+    char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
+    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2
     char tmp_opcode[MAX_OPCODE_LEN];
     int locctr, starting_address = 0;
     char* ifn = "intermediate";
@@ -31,11 +32,11 @@ error pass1(FILE* fp, int* program_length) {
     
     // read first input line
     read_line(fp, line);
-    lt = parse(line, label, opcode, operands);
+    lt = parse(line, label, opcode, op1, op2);
     if (lt == LT_START) {
 	starting_address = atoi(opcode);
 	locctr = starting_address;
-	fprintf(ifp, "%04X %-10s %-10s %-30s\n", locctr, label, opcode, op1, op2);
+	fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
 	
 	// read next line
 	read_line(fp, line);
@@ -52,7 +53,7 @@ error pass1(FILE* fp, int* program_length) {
 		    return delete_file(ifp, ifn, ERR_SYMBOL_DUPLICATED);
 		push_symtab(label, locctr);
 	    }
-	    fprintf(ifp, "%04X %-10s %-10s %-10s %-10s\n", locctr, label, opcode, op1, op2);
+	    fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
 	    if (opcode[0] == '+') strcpy(tmp_opcode, opcode + 1);
 	    else strcpy(tmp_opcode, opcode);
     	    if (lt == LT_OPCODE && (op_node = get_opcode(tmp_opcode)) != NULL) {
@@ -76,7 +77,7 @@ error pass1(FILE* fp, int* program_length) {
 	read_line(fp, line);
 	lt = parse(line, label, opcode, op1, op2);
     }
-    fprintf(ifp, "%04X %-10s %-10s %-10s %-10s\n", locctr, label, opcode, op1, op2);
+    fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
     fclose(ifp);
     *program_length = (locctr - starting_address);
     return NO_ERR;
@@ -92,23 +93,26 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
     linetype ret;
     strcpy(buf, line);
     
+    // initialize value 
+    strcpy(label, "\0");
+    strcpy(opcode, "\0");
+    strcpy(op1, "\0");
+    strcpy(op2, "\0");
+
     // parsing (tokenize)
     chptr = strtok(buf, " \t");
     if (buf[0] == '.' || buf[0] == '\0') {	
-	strcpy(label, "\0");
-	strcpy(opcode, "\0");
-	strcpy(op1, "\0");
-	strcpy(op2, "\0");
 	if (buf[0] == '.') ret = LT_COMMENT;
 	else ret = LT_NOT_A_LINE;
 	return ret;
     }
-    if (!isalpha(buf[0])) strcpy(label, "\0");
-    else {
-	strcpy(label, chptr);			
+    if (isalpha(buf[0])) {
+	strcpy(label, chptr);		// get label			
 	chptr = strtok(NULL, " \t");
     }
-    strcpy(opcode, chptr);
+    strcpy(opcode, chptr);		// get opcode
+
+    // get linetype
     if (strcmp(opcode, "START") == 0) ret = LT_START;
     else if (strcmp(opcode, "END") == 0) ret = LT_END;
     else if (strcmp(opcode, "BASE") == 0) ret = LT_BASE;
@@ -117,17 +121,15 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
     else if (strcmp(opcode, "RESB") == 0) ret = LT_RESB;
     else if (strcmp(opcode, "BYTE") == 0) ret = LT_BYTE;
     else ret = LT_OPCODE;
+
     chptr = strtok(NULL, " \t");
-    if (!chptr) {
-	strcpy(op1, "\0");
-	strcpy(op2, "\0");
-    }
-    else {
-	strcpy(op1, chptr);			// get op1
-	chptr = strtok(NULL, " \t");	
-    	if (!chptr) strcpy(op2, "\0");	
-    	else strcpy(op2, chptr);		// get op2
-    }
+    if (!chptr) return ret;
+    strcpy(op1, chptr);			// get op1
+    
+    chptr = strtok(NULL, " \t");	
+    if (!chptr) return ret;
+    strcpy(op2, chptr);			// get op2
+   
     return ret;
 }
 

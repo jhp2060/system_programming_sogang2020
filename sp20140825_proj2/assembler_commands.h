@@ -11,9 +11,9 @@
 
 #define LINE_MULTIPLIER 5
 #define MAX_LINE_LEN 128
-#define MAX_LABEL_LEN 10
-#define MAX_OPCODE_LEN 10
-#define MAX_OPERANDS_LEN 30
+#define MAX_LABEL_LEN 30
+#define MAX_OPCODE_LEN 30
+#define MAX_OPERAND_LEN 30
 
 typedef enum _linetype {
     LT_START,
