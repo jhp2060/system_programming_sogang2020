@@ -57,6 +57,15 @@ void print_error_msg(error e){
     case ERR_NOT_A_ASM_FILE:
 	printf("ERROR: not an .asm file.\n");
 	break;
+    case ERR_NO_START:
+	printf("ERROR: no START mnemonic in this .asm file.\n");
+	break;
+    case ERR_NO_END:
+	printf("ERROR: no END mnemonic in this .asm file.\n");
+	break;
+    case ERR_SYMBOL_DUPLICATED:
+	printf("ERROR: duplicated symbols does exist.\n");
+	break;
     default:
 	break;
     }
