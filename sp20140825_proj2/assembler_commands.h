@@ -14,6 +14,7 @@
 #define MAX_LABEL_LEN 30
 #define MAX_OPCODE_LEN 30
 #define MAX_OPERAND_LEN 30
+#define ITM_FILE "intermediate"
 
 typedef enum _linetype {
     LT_START,
@@ -35,16 +36,18 @@ typedef struct _sym_node {
 }sym_node;
 
 sym_node* SYMTAB;
+sym_node* RECENT_SYMTAB;
 
 error assemble(char* filename, int token_count);
 
 // functions for assemble
 error pass1(FILE* fp, int* program_length);
+error pass2(void);
 
 void read_line(FILE* fp, char* line);
 linetype parse(char* line, char* label, char* opcode, char* op1, char* op2);
 void init_symtab(void);
-void free_symtab(void);
+void free_symtab(sym_node* head);
 void push_symtab(char* symbol, int address);
 int exists_in_symtab(char* symbol);
 int get_byte_length(char* constant);

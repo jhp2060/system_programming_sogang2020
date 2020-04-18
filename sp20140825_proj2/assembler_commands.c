@@ -11,9 +11,24 @@ error assemble(char* filename, int token_count) {
     if (!fp) return ERR_NOT_A_FILE;
     if (len < 5 || strcmp(filename + len - 4, ".asm") || dir)
 	return ERR_NOT_A_ASM_FILE; 
+    
     e = pass1(fp, &program_length);
-    if (e != NO_ERR) return e; 
+    if (e != NO_ERR) {
+	free_symtab(SYMTAB);
+	return e; 
+    }
     fclose(fp);
+ 
+    e = pass2();
+    if (e != NO_ERR) {
+	free_symtab(SYMTAB);
+	return e; 
+    }
+    
+    // assembled successfully
+    free_symtab(RECENT_SYMTAB);
+    RECENT_SYMTAB = SYMTAB;
+    printf("Successfully assembled %s.\n", filename);
     return NO_ERR;
 }
 
@@ -25,7 +40,7 @@ error pass1(FILE* fp, int* program_length) {
     char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2
     char tmp_opcode[MAX_OPCODE_LEN];
     int locctr, starting_address = 0;
-    char* ifn = "intermediate";
+    char* ifn = ITM_FILE;
     FILE* ifp = fopen(ifn, "w");
     linetype lt;
     opcode_node* op_node;
@@ -58,11 +73,11 @@ error pass1(FILE* fp, int* program_length) {
 	    else strcpy(tmp_opcode, opcode);
     	    if (lt == LT_OPCODE && (op_node = get_opcode(tmp_opcode)) != NULL) {
 		if (strcmp(op_node->format, "3/4") == 0) {
-		    if (opcode[0] == '+') locctr += 4;
-		    else locctr += 3;
+		    if (opcode[0] == '+') locctr += 4; 				// format4
+		    else locctr += 3;						// format3
 		}
-		else if (strcmp(op_node->format, "1") == 0) locctr += 1;
-		else if (strcmp(op_node->format, "2") == 0) locctr += 2;
+		else if (strcmp(op_node->format, "1") == 0) locctr += 1; 	// format1
+		else if (strcmp(op_node->format, "2") == 0) locctr += 2;	// format2
 	    }
 	    else if (lt == LT_BASE);
 	    else if (lt == LT_WORD) locctr += 3;
@@ -83,11 +98,20 @@ error pass1(FILE* fp, int* program_length) {
     return NO_ERR;
 }
 
+
+error pass2() {
+
+    return NO_ERR;
+}
+
+
+// read a line from a file pointer, seperated by '\0' or '\n'
 void read_line(FILE* fp, char* line) {
     fgets(line, MAX_LINE_LEN, fp);
     line[strlen(line) - 1] = '\0';
 }
 
+// tokenize a line, seperated into label, opcode, op1, op2
 linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
     char buf[MAX_LINE_LEN], *chptr;
     linetype ret;
@@ -136,18 +160,19 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
 // initialize symtab as null, starting shell program
 void init_symtab(void) {
     SYMTAB = NULL;
+    RECENT_SYMTAB = NULL;
 }
 
 // free the allocated memories
-void free_symtab(void) {
-    sym_node* now = SYMTAB;
+void free_symtab(sym_node* head) {
+    sym_node* now = head;
     sym_node* tmp = NULL;
     while (now) {
 	tmp = now;
 	now = now->next;
 	free(tmp);
     }
-    SYMTAB = NULL;
+    head = NULL;
 }
 
 // return whether that symbol exists in SYMTAB
@@ -186,15 +211,16 @@ void push_symtab(char* symbol, int address) {
     to_push = NULL;
 }
 
+// calculate the byte constant's length
 int get_byte_length(char* constant) {
     int ret;
     char* chptr;
     switch(constant[0]) {
-    case 'C':
+    case 'C': // characters
 	chptr = strtok(constant, "C`'");
 	ret = strlen(chptr);
 	break;
-    case 'X':
+    case 'X': // a hexadecimal
 	chptr = strtok(constant, "X`'");
 	ret = strlen(chptr) / 2;
 	break;
@@ -202,6 +228,7 @@ int get_byte_length(char* constant) {
     return ret;
 }
 
+// close the file which was on the writing, and delete it
 error delete_file(FILE *fp, char* filename, error e) {
     fclose(fp);
     remove(filename);

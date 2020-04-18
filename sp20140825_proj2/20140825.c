@@ -143,5 +143,6 @@ void init(void) {
 void exit_program(void) {
     free_log();
     free_optab();
-    free_symtab();
+    free_symtab(SYMTAB);
+    free_symtab(RECENT_SYMTAB);
 }
