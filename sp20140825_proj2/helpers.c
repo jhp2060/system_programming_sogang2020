@@ -7,6 +7,7 @@ int strcmp_twice(char* norm, char* op1, char* op2) {
 
 // transform the hexa string into int vlaue
 int hexstr_to_int(char* str) {
+    /*
     int i, ret = 0, now, mult = 1;
     int len = strlen(str);
     for (i = len - 1; i >= 0; i--) {
@@ -19,7 +20,8 @@ int hexstr_to_int(char* str) {
         ret += (now * mult);
         mult *= 16;
     }
-    return ret;
+    */
+    return (int)strtol(str, NULL, 16);
 }
 
 void print_error_msg(error e){
