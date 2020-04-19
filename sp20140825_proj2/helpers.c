@@ -69,7 +69,7 @@ void print_error_msg(error e){
 	printf("ERROR: duplicated symbols does exist.\n");
 	break;
     case ERR_NO_INTERMEDIATE_FILE:
-	pritnf("ERROR: no intermediate file to load in pass2.\n");
+	printf("ERROR: no intermediate file to load in pass2.\n");
 	break;
     default:
 	break;

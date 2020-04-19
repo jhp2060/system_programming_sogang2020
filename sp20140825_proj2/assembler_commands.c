@@ -3,24 +3,30 @@
 error assemble(char* filename, int token_count) {
     if (token_count != 2) return ERR_WRONG_TOKENS;
    
-    char program_name[MAX_LINE_LEN]; 
-    FILE* fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, "r");
     int len = strlen(filename), program_length;
-    DIR* dir = opendir(filename);
+    DIR *dir = opendir(filename);
+    char *prefix, *suffix, tmp[MAX_LINE_LEN];
     error e;
+
+    if (!fp || dir) return ERR_NOT_A_FILE;
     
-    if (!fp) return ERR_NOT_A_FILE;
-    if (len < 5 || strcmp(filename + len - 4, ".asm") || dir)
+    //get prefix and suffix
+    strcpy(tmp, filename);
+    prefix = strtok(tmp, ".");
+    if (!prefix) return ERR_NOT_A_ASM_FILE;
+    suffix = strtok(NULL, ""); 
+    if (len < 5 || strcmp(suffix, "asm"))
 	return ERR_NOT_A_ASM_FILE; 
-    
-    e = pass1(fp, &program_length, program_name);
+
+    e = pass1(fp, prefix, &program_length);
     if (e != NO_ERR) {
 	free_symtab(SYMTAB);
 	return e; 
     }
     fclose(fp);
  
-    e = pass2(program_name);
+    e = pass2(prefix, program_length);
     if (e != NO_ERR) {
 	free_symtab(SYMTAB);
 	return e; 
@@ -34,17 +40,21 @@ error assemble(char* filename, int token_count) {
 }
 
 // pass1 of assembler
-error pass1(FILE* fp, int* program_length, char* program_name) {
+error pass1(FILE* fp, char* prefix, int* program_length) {
     if (!fp) return ERR_NOT_A_FILE;
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
     char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2
     char tmp_opcode[MAX_OPCODE_LEN];
     int locctr, starting_address = 0;
-    char* ifn = ITM_FILE;
-    FILE* ifp = fopen(ifn, "w");
+    char ifn[MAX_FILENAME_LEN];
+    FILE* ifp;
     linetype lt;
     opcode_node* op_node;
+
+    strcpy(ifn, prefix);
+    strcat(ifn, ".itm");  
+    ifp = fopen(ifn, "w");
     
     // read first input line
     read_line(fp, line);
@@ -52,7 +62,6 @@ error pass1(FILE* fp, int* program_length, char* program_name) {
     if (lt == LT_START) {
 	starting_address = atoi(opcode);
 	locctr = starting_address;
-	strcpy(program_name, label);
 	fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
 	
 	// read next line
@@ -91,7 +100,7 @@ error pass1(FILE* fp, int* program_length, char* program_name) {
 		return delete_file(ifp, ifn, ERR_WRONG_MNEMONIC);	
 	    }
 	}
-	else fprintf(ifp, ". %s\n", opcode);  
+	else fprintf(ifp, "%04X %-10s %s\n", locctr, label, opcode);  
 	read_line(fp, line);
 	lt = parse(line, label, opcode, op1, op2);
     }
@@ -101,23 +110,62 @@ error pass1(FILE* fp, int* program_length, char* program_name) {
     return NO_ERR;
 }
 
-
-error pass2(char* prefix) {
-    FILE *fp = fopen(ITM_FILE, "r");
+// pass 2 for sic/xe assembler
+error pass2(char* prefix, int program_length) {
+    char ifn[MAX_FILENAME_LEN];
+    FILE *ifp;
+    
+    // get the intermediate file  
+    strcpy(ifn, prefix);
+    strcat(ifn, ".itm");
+    ifp = fopen(ifn, "r");
+    if (!ifp) return ERR_NO_INTERMEDIATE_FILE;
+    
+    // variables for storing parsing results
+    char line[MAX_LINE_LEN];
+    char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
+    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2 
+   
+    // variables for .lst, .obj files
     FILE *lstfp, *objfp; 
     char filename[MAX_LINE_LEN];
+    char object_code[MAX_OBJECT_CODE_LEN];
+    char str_locctr[5];
+    int locctr = 0, linenum = 1;
+    linetype lt;
+    opcode_node* op_node;
+
+    // create .lst, .obj files
     strcpy(filename, prefix);
     lstfp = fopen(strcat(filename, ".lst"), "w");
     strcpy(filename, prefix);
     objfp = fopen(strcat(filename, ".obj"), "w");
-    fclose(lstfp);
-    fclose(objfp);
-
-	
      
-    //return delete_file(fp, ITM_FILE, NO_ERR);
-    fclose(fp);
+    // read first input line
+    read_line(ifp, line);
+    lt = parse2(line, str_locctr, label, opcode, op1, op2);
+    printf("%s\n", line);
+    printf("%3d %s %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, str_locctr, label, opcode, op1);
+    if (lt == LT_START) {
+	// write listing file
+	fprintf(lstfp, "%3d %s %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, str_locctr, label, opcode, op1);
+	
+	// read next line
+	read_line(ifp, line);
+        lt = parse2(line, str_locctr, label, opcode, op1, op2);
+    }
+    else return assemble_failed(lstfp, objfp, prefix, ERR_NO_START);
+   
+
+    
+    fclose(lstfp);
+    fclose(objfp);	
+     
+    return delete_file(ifp, ifn, NO_ERR);
+    /*
+    fclose(ifp);		// not to delete intermediate file to check the file
     return NO_ERR;
+    */
 }
 
 
@@ -141,7 +189,7 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
 
     // parsing (tokenize)
     chptr = strtok(buf, " \t");
-    if (buf[0] == '\0') return LT_NOT_A_LINE;
+    if (!chptr || is_nullstr(chptr)) return LT_NOT_A_LINE;
     if (isalpha(buf[0]) || buf[0] == '.') {
 	strcpy(label, chptr);			// get label			
 	chptr = strtok(NULL, " \t");
@@ -179,6 +227,18 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
    
     return ret;
 }
+
+// parsing for pass2
+linetype parse2(char* line, char* str_locctr, char* label, char* opcode, char* op1, char* op2) {
+    char buf[MAX_LINE_LEN], *chptr;
+    strcpy(buf, line);
+
+    chptr = strtok(buf, " \t");
+    if (!chptr || is_nullstr(chptr)) return LT_NOT_A_LINE;
+    strcpy(str_locctr, chptr);
+    return parse(chptr + strlen(chptr) + 1, label, opcode, op1, op2);
+}
+
 
 // initialize symtab as null, starting shell program
 void init_symtab(void) {
@@ -255,5 +315,20 @@ int get_byte_length(char* constant) {
 error delete_file(FILE *fp, char* filename, error e) {
     fclose(fp);
     remove(filename);
+    return e;
+}
+
+// close the files on writing and delete them(.lst, .obj) in pass2
+error assemble_failed(FILE* lstfp, FILE* objfp, char* prefix, error e) {
+    char filename[MAX_FILENAME_LEN];
+    strcpy(filename, prefix);
+    
+    fclose(lstfp);
+    fclose(objfp);
+    
+    remove(strcat(filename, ".lst"));
+    strcpy(filename, prefix); 
+    remove(strcat(filename, ".obj"));
+    
     return e;
 }
