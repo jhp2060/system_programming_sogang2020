@@ -16,6 +16,7 @@
 #define MAX_OPERAND_LEN 100
 #define MAX_FILENAME_LEN 50
 #define MAX_OBJECT_CODE_LEN 20
+#define MAX_TEXT_RECORD_LEN 30
 
 typedef enum _linetype {
     LT_START,

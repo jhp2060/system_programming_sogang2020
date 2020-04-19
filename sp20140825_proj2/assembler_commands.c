@@ -104,7 +104,9 @@ error pass1(FILE* fp, char* prefix, int* program_length) {
 	read_line(fp, line);
 	lt = parse(line, label, opcode, op1, op2);
     }
+
     fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
+
     fclose(ifp);
     *program_length = (locctr - starting_address);
     return NO_ERR;
@@ -128,10 +130,10 @@ error pass2(char* prefix, int program_length) {
    
     // variables for .lst, .obj files
     FILE *lstfp, *objfp; 
-    char filename[MAX_LINE_LEN];
+    char filename[MAX_LINE_LEN], program_name[MAX_LINE_LEN];
+    char tmp[MAX_LINE_LEN];
     char object_code[MAX_OBJECT_CODE_LEN];
-    char str_locctr[5];
-    int locctr = 0, linenum = 1;
+    int locctr = 0, linenum = 1, starting_address = 0;
     linetype lt;
     opcode_node* op_node;
 
@@ -143,20 +145,48 @@ error pass2(char* prefix, int program_length) {
      
     // read first input line
     read_line(ifp, line);
-    lt = parse2(line, str_locctr, label, opcode, op1, op2);
-    printf("%s\n", line);
-    printf("%3d %s %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, str_locctr, label, opcode, op1);
+    lt = parse2(line, &locctr, label, opcode, op1, op2);
     if (lt == LT_START) {
 	// write listing file
-	fprintf(lstfp, "%3d %s %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, str_locctr, label, opcode, op1);
+	fprintf(lstfp, "%3d %04X %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, locctr, label, opcode, op1);
+	starting_address = locctr;
+	strcpy(program_name, label);
 	
 	// read next line
 	read_line(ifp, line);
-        lt = parse2(line, str_locctr, label, opcode, op1, op2);
+        lt = parse2(line, &locctr, label, opcode, op1, op2);
     }
     else return assemble_failed(lstfp, objfp, prefix, ERR_NO_START);
-   
+	
+    fprintf(objfp, "H%-6s%06X%06X\n", program_name, starting_address, program_length);
+    fprintf(objfp, "T%06X", starting_address);
 
+    // while opcode != END
+    while (lt != LT_END) {
+	if (feof(fp)) return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
+        if (lt != LT_COMMENT) {
+            if (opcode[0] == '+') strcpy(tmp, opcode + 1);
+            else strcpy(tmp, opcode);
+            if (lt == LT_OPCODE && (op_node = get_opcode(tmp)) != NULL) {
+                if (strcmp(op_node->format, "3/4") == 0) {
+                    if (opcode[0] == '+') locctr += 4;                          // format4
+                    else locctr += 3;                                           // format3
+                }
+                else if (strcmp(op_node->format, "1") == 0) locctr += 1;        // format1
+                else if (strcmp(op_node->format, "2") == 0) locctr += 2;        // format2
+            }
+            else if (lt == LT_WORD || lt == LT_BYTE) {
+	    } 
+	    // if object code will not fit into the current Text Record
+		// write Text record to object program
+
+        }
+        else fprintf(ifp, "%04X %-10s %s\n", locctr, label, opcode);
+        read_line(fp, line);
+        lt = parse(line, label, opcode, op1, op2);
+    }
+   
+    }
     
     fclose(lstfp);
     fclose(objfp);	
@@ -229,13 +259,13 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
 }
 
 // parsing for pass2
-linetype parse2(char* line, char* str_locctr, char* label, char* opcode, char* op1, char* op2) {
+linetype parse2(char* line, int *locctr, char* label, char* opcode, char* op1, char* op2) {
     char buf[MAX_LINE_LEN], *chptr;
     strcpy(buf, line);
 
     chptr = strtok(buf, " \t");
     if (!chptr || is_nullstr(chptr)) return LT_NOT_A_LINE;
-    strcpy(str_locctr, chptr);
+    *locctr = hexstr_to_int(chptr);
     return parse(chptr + strlen(chptr) + 1, label, opcode, op1, op2);
 }
 
