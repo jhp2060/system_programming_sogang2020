@@ -14,17 +14,24 @@ error assemble(char* filename, int token_count) {
     //get prefix and suffix
     strcpy(tmp, filename);
     prefix = strtok(tmp, ".");
-    if (!prefix) return ERR_NOT_A_ASM_FILE;
+    if (!prefix) {
+	fclose(fp);
+	return ERR_NOT_A_ASM_FILE;
+    }
     suffix = strtok(NULL, ""); 
-    if (len < 5 || strcmp(suffix, "asm"))
+    if (len < 5 || strcmp(suffix, "asm")) {
+	fclose(fp);
 	return ERR_NOT_A_ASM_FILE; 
-
+    }
+	
+    // initialize "text_record_lens" where to store the lengths of each text record from new object file
+    init_text_record_lens();
     e = pass1(fp, prefix, &program_length);
+    fclose(fp);
     if (e != NO_ERR) {
 	free_symtab(SYMTAB);
 	return e; 
     }
-    fclose(fp);
  
     e = pass2(prefix, program_length);
     if (e != NO_ERR) {
@@ -34,7 +41,9 @@ error assemble(char* filename, int token_count) {
     
     // assembled successfully
     free_symtab(RECENT_SYMTAB);
-    RECENT_SYMTAB = SYMTAB;
+    RECENT_SYMTAB = SYMTAB;		// store recent symtab
+    SYMTAB = NULL;
+    preload_registers_on_symtab();
     printf("Successfully assembled %s.\n", filename);
     return NO_ERR;
 }
@@ -42,15 +51,22 @@ error assemble(char* filename, int token_count) {
 // pass1 of assembler
 error pass1(FILE* fp, char* prefix, int* program_length) {
     if (!fp) return ERR_NOT_A_FILE;
+   
+    // variables for parsing
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
-    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2
+    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN];	// sic/xe instructions have their operands at most 2
     char tmp_opcode[MAX_OPCODE_LEN];
+
+    // variables for locctr and text_record_lens
     int locctr, starting_address = 0;
-    char ifn[MAX_FILENAME_LEN];
-    FILE* ifp;
+    int locctr_delta = 0;				// use global variable "text_record_num" as the index of "text_record_lens"
     linetype lt;
     opcode_node* op_node;
+	
+    // variales for files
+    char ifn[MAX_FILENAME_LEN];
+    FILE* ifp;
 
     strcpy(ifn, prefix);
     strcat(ifn, ".itm");  
@@ -84,20 +100,34 @@ error pass1(FILE* fp, char* prefix, int* program_length) {
 	    else strcpy(tmp_opcode, opcode);
     	    if (lt == LT_OPCODE && (op_node = get_opcode(tmp_opcode)) != NULL) {
 		if (strcmp(op_node->format, "3/4") == 0) {
-		    if (opcode[0] == '+') locctr += 4; 				// format4
-		    else locctr += 3;						// format3
+		    if (opcode[0] == '+') locctr_delta = 4; 			// format4
+		    else locctr_delta = 3;					// format3
 		}
-		else if (strcmp(op_node->format, "1") == 0) locctr += 1; 	// format1
-		else if (strcmp(op_node->format, "2") == 0) locctr += 2;	// format2
+		else if (strcmp(op_node->format, "1") == 0) locctr_delta = 1; 	// format1
+		else if (strcmp(op_node->format, "2") == 0) locctr_delta = 2;	// format2
 	    }
-	    else if (lt == LT_BASE);
-	    else if (lt == LT_WORD) locctr += 3;
-	    else if (lt == LT_RESW) locctr += (3 * atoi(op1));
-	    else if (lt == LT_RESB) locctr += atoi(op1);
-	    else if (lt == LT_BYTE) locctr += get_byte_length(op1);
+	    else if (lt == LT_BASE) locctr_delta = 0;
+	    else if (lt == LT_WORD) locctr_delta = 3;
+	    else if (lt == LT_RESW) locctr_delta = (3 * atoi(op1));
+	    else if (lt == LT_RESB) locctr_delta = atoi(op1);
+	    else if (lt == LT_BYTE) locctr_delta = get_byte_length(op1);
 	    else {
 		printf("WRONG MNEMONIC: %s\n", opcode); 
 		return delete_file(ifp, ifn, ERR_WRONG_MNEMONIC);	
+	    }
+	    locctr += locctr_delta;
+	    if (lt == LT_OPCODE || lt == LT_WORD || lt == LT_BYTE) { 	// get the text record's lengths per each line in .obj file
+		if (text_record_lens[text_record_num] < 0)		// if the new text record has created right after RESW or RESB
+		    text_record_lens[text_record_num] = 0;		// or the first test record in this obj file
+		if (text_record_lens[text_record_num] + locctr_delta > MAX_TEXT_RECORD_LEN) { // exceeded the max value of a text record length
+		    text_record_num++;					// create new text record
+		    text_record_lens[text_record_num] = 0;		// initialize the value as 0
+		}
+		text_record_lens[text_record_num] += locctr_delta;
+	    }
+	    else if (lt == LT_RESW || lt == LT_RESB) {
+		if (text_record_lens[text_record_num] > 0) 		// only if the previous text record has started
+		    text_record_num++;					// create new text record
 	    }
 	}
 	else fprintf(ifp, "%04X %-10s %s\n", locctr, label, opcode);  
@@ -109,6 +139,8 @@ error pass1(FILE* fp, char* prefix, int* program_length) {
 
     fclose(ifp);
     *program_length = (locctr - starting_address);
+    if (text_record_lens[text_record_num] < 0 && text_record_num > 1)
+	text_record_num--;				// for the case that text_record_num incremented, but new text record haven't started 
     return NO_ERR;
 }
 
@@ -134,6 +166,7 @@ error pass2(char* prefix, int program_length) {
     char tmp[MAX_LINE_LEN];
     char object_code[MAX_OBJECT_CODE_LEN];
     int locctr = 0, linenum = 1, starting_address = 0;
+    int now_text_record_len = 0, text_record_idx = 0;
     linetype lt;
     opcode_node* op_node;
 
@@ -159,11 +192,11 @@ error pass2(char* prefix, int program_length) {
     else return assemble_failed(lstfp, objfp, prefix, ERR_NO_START);
 	
     fprintf(objfp, "H%-6s%06X%06X\n", program_name, starting_address, program_length);
-    fprintf(objfp, "T%06X", starting_address);
+    fprintf(objfp, "T%06X%02X", starting_address, text_record_lens[text_record_idx]);
 
     // while opcode != END
     while (lt != LT_END) {
-	if (feof(fp)) return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
+	if (feof(ifp)) return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
         if (lt != LT_COMMENT) {
             if (opcode[0] == '+') strcpy(tmp, opcode + 1);
             else strcpy(tmp, opcode);
@@ -176,16 +209,15 @@ error pass2(char* prefix, int program_length) {
                 else if (strcmp(op_node->format, "2") == 0) locctr += 2;        // format2
             }
             else if (lt == LT_WORD || lt == LT_BYTE) {
-	    } 
-	    // if object code will not fit into the current Text Record
-		// write Text record to object program
+	    }
+
+	    if (now_text_record_len > text_record_lens[text_record_idx]) 
+		text_record_idx++; 
 
         }
         else fprintf(ifp, "%04X %-10s %s\n", locctr, label, opcode);
-        read_line(fp, line);
-        lt = parse(line, label, opcode, op1, op2);
-    }
-   
+	read_line(ifp, line);
+        lt = parse2(line, &locctr, label, opcode, op1, op2);
     }
     
     fclose(lstfp);
@@ -324,6 +356,19 @@ void push_symtab(char* symbol, int address) {
     to_push = NULL;
 }
 
+// preload the registers on SYMTAB
+void preload_registers_on_symtab(void) {
+    push_symtab("A", 0);
+    push_symtab("X", 1);
+    push_symtab("L", 2);
+    push_symtab("PC", 8);
+    push_symtab("SW", 9);
+    push_symtab("B", 3);
+    push_symtab("S", 4);
+    push_symtab("R", 5);
+    push_symtab("F", 6);
+}
+
 // calculate the byte constant's length
 int get_byte_length(char* constant) {
     int ret;
@@ -361,4 +406,11 @@ error assemble_failed(FILE* lstfp, FILE* objfp, char* prefix, error e) {
     remove(strcat(filename, ".obj"));
     
     return e;
+}
+
+// initialize the values of text_record_lens
+void init_text_record_lens(void) {
+    int i = 0;
+    text_record_num = 0;
+    for (i = 0; i < MAX_TEXT_RECORDS; i++) text_record_lens[i] = -1;
 }
