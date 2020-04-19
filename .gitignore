@@ -12,3 +12,4 @@
 *.tar
 intermediate
 *.lst
+*.obj

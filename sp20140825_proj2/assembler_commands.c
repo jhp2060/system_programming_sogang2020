@@ -60,7 +60,7 @@ error pass1(FILE* fp, int* program_length, char* program_name) {
 	lt = parse(line, label, opcode, op1, op2);
     }
     else return delete_file(ifp, ifn, ERR_NO_START);
-    
+
     // while opcode != END 
     while (lt != LT_END) {
 	if (feof(fp)) return delete_file(ifp, ifn, ERR_NO_END);
@@ -91,6 +91,7 @@ error pass1(FILE* fp, int* program_length, char* program_name) {
 		return delete_file(ifp, ifn, ERR_WRONG_MNEMONIC);	
 	    }
 	}
+	else fprintf(ifp, ". %s\n", opcode);  
 	read_line(fp, line);
 	lt = parse(line, label, opcode, op1, op2);
     }
@@ -112,9 +113,11 @@ error pass2(char* prefix) {
     fclose(lstfp);
     fclose(objfp);
 
- 
-
-    return delete_file(fp, ITM_FILE, NO_ERR);
+	
+     
+    //return delete_file(fp, ITM_FILE, NO_ERR);
+    fclose(fp);
+    return NO_ERR;
 }
 
 
@@ -138,16 +141,23 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
 
     // parsing (tokenize)
     chptr = strtok(buf, " \t");
-    if (buf[0] == '.' || buf[0] == '\0') {	
-	if (buf[0] == '.') ret = LT_COMMENT;
-	else ret = LT_NOT_A_LINE;
-	return ret;
-    }
-    if (isalpha(buf[0])) {
-	strcpy(label, chptr);		// get label			
+    if (buf[0] == '\0') return LT_NOT_A_LINE;
+    if (isalpha(buf[0]) || buf[0] == '.') {
+	strcpy(label, chptr);			// get label			
 	chptr = strtok(NULL, " \t");
+	if (buf[0] == '.') {
+	    ret = LT_COMMENT;
+	    if (!chptr) return ret;
+	}
     }
-    strcpy(opcode, chptr);		// get opcode
+ 
+    if (ret == LT_COMMENT) {
+	*(chptr + strlen(chptr)) = ' ';
+	strcpy(opcode, chptr);
+	return ret;	
+    }    
+ 
+    strcpy(opcode, chptr);			// get opcode
 
     // get linetype
     if (strcmp(opcode, "START") == 0) ret = LT_START;
@@ -161,11 +171,11 @@ linetype parse(char* line, char* label, char* opcode, char* op1, char* op2) {
 
     chptr = strtok(NULL, " \t");
     if (!chptr) return ret;
-    strcpy(op1, chptr);			// get op1
+    strcpy(op1, chptr);				// get op1
     
     chptr = strtok(NULL, " \t");	
     if (!chptr) return ret;
-    strcpy(op2, chptr);			// get op2
+    strcpy(op2, chptr);				// get op2
    
     return ret;
 }
