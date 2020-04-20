@@ -1,9 +1,9 @@
 #include "assembler_commands.h"
 
 error assemble(char* filename, int token_count) {
-    if (token_count != 2) return ERR_WRONG_TOKENS;
+	if (token_count != 2) return ERR_WRONG_TOKENS;
    
-    FILE *fp = fopen(filename, "r");
+	FILE *fp = fopen(filename, "r");
     int len = strlen(filename), program_length;
     DIR *dir = opendir(filename);
     char *prefix, *suffix, tmp[MAX_LINE_LEN];
