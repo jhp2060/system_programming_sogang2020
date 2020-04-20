@@ -30,44 +30,56 @@ typedef enum _linetype {
     LT_RESB,
     LT_BYTE,
     LT_NOT_A_LINE,
-}linetype;
+} linetype;
 
 typedef struct _sym_node {
     char symbol[MAX_LABEL_LEN];
     int address;
-    struct _sym_node* next;
-}sym_node;
+    struct _sym_node *next;
+} sym_node;
 
-sym_node* SYMTAB;
-sym_node* RECENT_SYMTAB;
+sym_node *SYMTAB;
+sym_node *RECENT_SYMTAB;
 int base_register;
 
-error assemble(char* filename, int token_count);
+error assemble(char *filename, int token_count);
 
 // functions for assemble
-error pass1(FILE* fp, char* prefix, int* program_length);
-error pass2(char* prefix, int program_length);
+error pass1(FILE *fp, char *prefix, int *program_length);
+
+error pass2(char *prefix, int program_length);
 
 // processing strings
-void read_line(FILE* fp, char* line);
-linetype parse(char* line, char* label, char* opcode, char* op1, char* op2);
-linetype parse2(char* line, int* locctr, char* label, char* opcode, char* op1, char* op2);
+void read_line(FILE *fp, char *line);
+
+linetype parse(char *line, char *label, char *opcode, char *op1, char *op2);
+
+linetype parse2(char *line, int *locctr, char *label, char *opcode, char *op1, char *op2);
 
 // functions for symtab
 void init_symtab(void);
-void free_symtab(sym_node* head);
-void push_symtab(char* symbol, int address);
-void preload_registers_on_symtab(void);
-int exists_in_symtab(char* symbol);
-sym_node* get_symbol(char* symbol);
 
-int get_byte_length(char* constant);
-error get_object_code(char* ret, int pc, char* opcode, char* op1, char* op2);
-void update_text_record_len(char* text_record, int len);
-int is_constant(char* symbol); 
+void free_symtab(sym_node *head);
+
+void push_symtab(char *symbol, int address);
+
+void preload_registers_on_symtab(void);
+
+int exists_in_symtab(char *symbol);
+
+sym_node *get_symbol(char *symbol);
+
+int get_byte_length(char *constant);
+
+error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2);
+
+void update_text_record_len(char *text_record, int len);
+
+int is_constant(char *symbol);
 
 // funcitons for cases of assembly failure
-error delete_file(FILE* fp, char* filename, error e);
-error assemble_failed(FILE* lstfp, FILE* objfp, char* prefix, error e);
+error delete_file(FILE *fp, char *filename, error e);
+
+error assemble_failed(FILE *lstfp, FILE *objfp, char *prefix, error e);
 
 #endif

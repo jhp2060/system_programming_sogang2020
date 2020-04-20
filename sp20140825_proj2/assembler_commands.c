@@ -90,7 +90,7 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
         locctr = 0;
     }
 
-    // while opcode != END 
+    // while opcode != END
     while (lt != LT_END) {
         if (feof(fp)) return delete_file(ifp, ifn, ERR_NO_END);
         if (lt != LT_COMMENT) {
@@ -136,7 +136,7 @@ error pass2(char *prefix, int program_length) {
     char ifn[MAX_FILENAME_LEN];
     FILE *ifp;
 
-    // get the intermediate file  
+    // get the intermediate file
     strcpy(ifn, prefix);
     strcat(ifn, ".itm");
     ifp = fopen(ifn, "r");
@@ -145,7 +145,7 @@ error pass2(char *prefix, int program_length) {
     // variables for storing parsing results
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
-    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2 
+    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2
 
     // variables for .lst, .obj files
     FILE *lstfp, *objfp;
