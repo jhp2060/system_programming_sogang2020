@@ -15,13 +15,13 @@ error assemble(char* filename, int token_count) {
     strcpy(tmp, filename);
     prefix = strtok(tmp, ".");
     if (!prefix) {
-	fclose(fp);
-	return ERR_NOT_A_ASM_FILE;
+		fclose(fp);
+		return ERR_NOT_A_ASM_FILE;
     }
     suffix = strtok(NULL, ""); 
     if (len < 5 || strcmp(suffix, "asm")) {
-	fclose(fp);
-	return ERR_NOT_A_ASM_FILE; 
+		fclose(fp);
+		return ERR_NOT_A_ASM_FILE; 
     }
 
     // initialize base_register
@@ -32,7 +32,7 @@ error assemble(char* filename, int token_count) {
 	free_symtab(SYMTAB);
 	return e; 
     }
- 
+ 	
     e = pass2(prefix, program_length);
     if (e != NO_ERR) {
 	free_symtab(SYMTAB);
@@ -142,7 +142,7 @@ error pass2(char* prefix, int program_length) {
     strcat(ifn, ".itm");
     ifp = fopen(ifn, "r");
     if (!ifp) return ERR_NO_INTERMEDIATE_FILE;
-    
+
     // variables for storing parsing results
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
@@ -171,70 +171,70 @@ error pass2(char* prefix, int program_length) {
     read_line(ifp, line);
     lt = parse2(line, &locctr, label, opcode, op1, op2);
     if (lt == LT_START) {
-	// write listing file
-	fprintf(lstfp, "%3d %04X %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, locctr, label, opcode, op1);
-	starting_address = locctr;
-	strcpy(program_name, label);
-	
-	// read next line
-	read_line(ifp, line);
-        lt = parse2(line, &locctr, label, opcode, op1, op2);
+		// write listing file
+		fprintf(lstfp, "%3d %04X %-10s %-10s %s\n", (linenum++) * LINE_MULTIPLIER, locctr, label, opcode, op1);
+		starting_address = locctr;
+		strcpy(program_name, label);
+		
+		// read next line
+		read_line(ifp, line);
+		lt = parse2(line, &locctr, label, opcode, op1, op2);
     }
     else {
-	locctr = 0;
-	starting_address = 0;
-    }
+		locctr = 0;
+		starting_address = 0;
+	}
 	
-    fprintf(objfp, "H%-6s%06X%06X\n", program_name, starting_address, program_length);	// header record
-    sprintf(now_text_record, "T%06X", starting_address); 
+	fprintf(objfp, "H%-6s%06X%06X\n", program_name, starting_address, program_length);	// header record
+	sprintf(now_text_record, "T%06X", starting_address); 
 
     // while opcode != END
     while (lt != LT_END) {
-	if (feof(ifp)) return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
-        if (lt != LT_COMMENT) {
+		if (feof(ifp)) return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
+		if (lt != LT_COMMENT) {
             if (opcode[0] == '+') strcpy(tmp_opcode, opcode + 1);
             else strcpy(tmp_opcode, opcode);
             if (lt == LT_OPCODE && (op_node = get_opcode(tmp_opcode)) != NULL) {
-		e = get_object_code(object_code, locctr, opcode, op1, op2);
-		if (e != NO_ERR) return assemble_failed(lstfp, objfp, prefix, e);	
+				e = get_object_code(object_code, locctr, opcode, op1, op2);
+				if (e != NO_ERR) return assemble_failed(lstfp, objfp, prefix, e);	
             }
             else if (lt == LT_BYTE) {
-		if (op1[0] == 'C') {
-	    	    char tmpbuf[3];
-	    	    char* chptr = strtok(op1, " C'`");
-	    	    for (int i = 0; i < (int) strlen(chptr); i++) {
-		   	sprintf(tmpbuf, "%02X", (int)*(chptr + i));
-		    	strcat(object_code, tmpbuf);
-	    	    }
-	    	}
-		else if (op1[0] == 'X') {
-	    	    char* chptr = strtok(op1, " X'`");
-	    	    strcpy(object_code, chptr); 
-		}
+				if (op1[0] == 'C') {
+	    	    	char tmpbuf[3];
+	    	    	char* chptr = strtok(op1, " C'`");
+	    	    	for (int i = 0; i < (int) strlen(chptr); i++) {
+		   				sprintf(tmpbuf, "%02X", (int)*(chptr + i));
+		    			strcat(object_code, tmpbuf);
+	    	    	}
+	    		}
+				else if (op1[0] == 'X') {
+	    	    	char* chptr = strtok(op1, " X'`");
+	    	    	strcpy(object_code, chptr); 
+				}
     	    }
     	    else if (lt == LT_WORD) {
-		sprintf(object_code, "%06X", atoi(op1));	
-	    }
+				sprintf(object_code, "%06X", atoi(op1));	
+	    	}	
     	    else if (lt == LT_BASE) {
-		s_node = get_symbol(op1);
-	    	if (!s_node) {
-	    	    printf("WRONG SYMBOL: %s\n", op1);
-	    	    return assemble_failed(lstfp, objfp, prefix, ERR_NO_SYMBOL);
-	    	}
-	        base_register = s_node->address;	// set base
- 	        strcpy(object_code, "\0");		// no object code
+				s_node = get_symbol(op1);
+	    		if (!s_node) {
+	    	    	printf("WRONG SYMBOL: %s\n", op1);
+	    	    	return assemble_failed(lstfp, objfp, prefix, ERR_NO_SYMBOL);
+	    		}
+	        	base_register = s_node->address;	// set base
+ 	        	strcpy(object_code, "\0");		// no object code
     	    }
-   	    else if (lt == LT_NOBASE) {
-	    	base_register = -1;
-		strcpy(object_code, "\0");		// no object code
+   	    	else if (lt == LT_NOBASE) {
+	    		base_register = -1;
+				strcpy(object_code, "\0");		// no object code
     	    }
 		
-	    if (now_text_record_len + strlen(object_code) / 2 > MAX_TEXT_RECORD_LEN) { 	// if object code not fit into current text record
-		update_text_record_len(now_text_record, now_text_record_len);
-		fprintf(objfp, "%s\n", now_text_record);				// write text record on obj file
-		sprintf(now_text_record, "T%06X", locctr);				// new text record
+	    	if (now_text_record_len + strlen(object_code) / 2 > MAX_TEXT_RECORD_LEN) { 	// if object code not fit into current text record
+			update_text_record_len(now_text_record, now_text_record_len);
+			fprintf(objfp, "%s\n", now_text_record);				// write text record on obj file
+			sprintf(now_text_record, "T%06X", locctr);				// new text record
 	    	strcat(now_text_record, object_code);
-	    }
+		}
 	    else {
 	    	now_text_record_len += strlen(object_code);
 		strcat(now_text_record, object_code);		
