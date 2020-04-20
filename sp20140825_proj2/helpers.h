@@ -29,5 +29,6 @@ int strcmp_twice(char* norm, char* op1, char* op2);
 int hexstr_to_int(char* str);
 void print_error_msg(error e);
 int is_nullstr(char* str);
+void int_to_binstr(char* ret, int val, int digit);
 
 #endif

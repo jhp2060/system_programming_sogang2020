@@ -24,6 +24,7 @@ int hexstr_to_int(char* str) {
     return (int)strtol(str, NULL, 16);
 }
 
+// print out the error messages according to the error
 void print_error_msg(error e){
     switch(e) {
     case NO_ERR:
@@ -76,6 +77,18 @@ void print_error_msg(error e){
     }
 }
 
+// whether the string is null string or not
 int is_nullstr(char* str) {
     return (*(str) == '\0');
+}
+
+// convert an int value into binary string
+void int_to_binstr (char* ret, int val, int digit) {
+    if (digit > 16) return;
+    int i, mask;
+    for (i = digit - 1; i >= 0; i--) {
+        mask = 1 << i;
+        ret[i] = mask & val ? '1' : '0';
+    }
+    ret[digit] = '\0';
 }
