@@ -22,6 +22,9 @@ typedef enum _error {
     ERR_NO_END,
     ERR_SYMBOL_DUPLICATED,
     ERR_NO_INTERMEDIATE_FILE,
+    ERR_NO_INST_OPERAND,
+    ERR_NO_SYMBOL,
+    ERR_NO_INST_COMMA,
 }error;
 
 int strcmp_twice(char* norm, char* op1, char* op2);

@@ -69,6 +69,15 @@ void print_error_msg(error e){
     case ERR_NO_INTERMEDIATE_FILE:
 	printf("ERROR: no intermediate file to load in pass2.\n");
 	break;
+    case ERR_NO_INST_OPERAND:
+	printf("ERROR: 1 or more operands needed for the instruction.\n");
+	break;
+    case ERR_NO_SYMBOL:
+	printf("ERROR: no symbol with that name in SYMTAB.\n");
+	break;
+    case ERR_NO_INST_COMMA:
+	printf("ERROR: a comma(,) needed between two operands in the instruction.\n");
+	break;
     default:
 	break;
     }
