@@ -17,7 +17,6 @@
 #define MAX_FILENAME_LEN 50
 #define MAX_OBJECT_CODE_LEN 20
 #define MAX_TEXT_RECORD_LEN 30
-#define MAX_TEXT_RECORDS 100
 
 typedef enum _linetype {
     LT_START,
@@ -25,6 +24,7 @@ typedef enum _linetype {
     LT_COMMENT,
     LT_OPCODE,
     LT_BASE,
+    LT_NOBASE,
     LT_WORD,
     LT_RESW,
     LT_RESB,
@@ -40,8 +40,7 @@ typedef struct _sym_node {
 
 sym_node* SYMTAB;
 sym_node* RECENT_SYMTAB;
-int text_record_lens[MAX_TEXT_RECORDS];  // the lengths of each text records in .obj file
-int text_record_num;
+int base_register;
 
 error assemble(char* filename, int token_count);
 
@@ -60,12 +59,15 @@ void free_symtab(sym_node* head);
 void push_symtab(char* symbol, int address);
 void preload_registers_on_symtab(void);
 int exists_in_symtab(char* symbol);
+sym_node* get_symbol(char* symbol);
 
 int get_byte_length(char* constant);
+error get_object_code(char* ret, int pc, char* opcode, char* op1, char* op2);
+void update_text_record_len(char* text_record, int len);
+int is_constant(char* symbol); 
 
 // funcitons for cases of assembly failure
 error delete_file(FILE* fp, char* filename, error e);
 error assemble_failed(FILE* lstfp, FILE* objfp, char* prefix, error e);
 
-void init_text_record_lens(void);
 #endif
