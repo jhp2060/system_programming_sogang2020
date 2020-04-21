@@ -50,15 +50,33 @@ error assemble(char *filename, int token_count) {
     return NO_ERR;
 }
 
+// execute command symbol : print out the symtab
 error symbol(int token_count) {
 	if (token_count != 1) return ERR_WRONG_TOKENS;
-	sym_node* now = SYMTAB;
+	sym_node* now = RECENT_SYMTAB;
 	while (now) {
-		printf("\t\t %10s %04X\n", now->symbol, now->addres);
+		char s0 = now->symbol[0];
+		char s1 = now->symbol[1];
+		switch (s0) {
+		case 'A':
+		case 'X':
+		case 'L':
+		case 'B':
+		case 'T':
+		case 'F':
+			if (s1 == '\0') break;
+		case 'P':
+			if (s1 == 'C') break;
+		case 'S':
+			if (s1 == '\0' || s1 == 'W') break;
+		default:
+			printf("\t%-10s %04X\n", now->symbol, now->address);
+			break;
+		}
 		now = now->next;
 	}
+	return NO_ERR;
 }
-
 
 // pass1 of assembler
 error pass1(FILE *fp, char *prefix, int *program_length) {

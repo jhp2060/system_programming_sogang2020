@@ -47,6 +47,8 @@ char modi_records[MAX_MODI_RECORD][MODI_RECORD_LEN];
 int modi_record_num;
 
 error assemble(char *filename, int token_count);
+    
+error symbol(int token_count);
 
 // functions for assemble
 error pass1(FILE *fp, char *prefix, int *program_length);
