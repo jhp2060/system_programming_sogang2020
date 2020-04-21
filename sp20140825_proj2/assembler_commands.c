@@ -57,6 +57,7 @@ error symbol(int token_count) {
 	while (now) {
 		char s0 = now->symbol[0];
 		char s1 = now->symbol[1];
+		// registers not to be shown
 		switch (s0) {
 		case 'A':
 		case 'X':
@@ -85,7 +86,7 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
     // variables for parsing
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
-    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN];    // sic/xe instructions have their operands at most 2
+    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN];
     char tmp_opcode[MAX_OPCODE_LEN];
 
     // variables for locctr
@@ -106,17 +107,20 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
     read_line(fp, line);
     lt = parse(line, label, opcode, op1, op2);
     if (lt == LT_START) {
-        starting_address = atoi(opcode);
+		// save the starting address
+        starting_address = atoi(op1);
+
+		// initialize locctr to starting address
         locctr = starting_address;
+
+		// write line to the intermediate file
         fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
 
         // read next line
         read_line(fp, line);
         lt = parse(line, label, opcode, op1, op2);
-    } else {
-        starting_address = 0;
-        locctr = 0;
-    }
+    } 
+	else locctr = 0; // initialize locctr to 0
 
     // while opcode != END
     while (lt != LT_END) {
@@ -173,7 +177,7 @@ error pass2(char *prefix, int program_length) {
     // variables for storing parsing results
     char line[MAX_LINE_LEN];
     char label[MAX_LABEL_LEN], opcode[MAX_OPCODE_LEN];
-    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN]; // sic/xe instructions have their operands at most 2
+    char op1[MAX_OPERAND_LEN], op2[MAX_OPERAND_LEN];
 
     // variables for .lst, .obj files
     FILE *lstfp, *objfp;
@@ -214,7 +218,7 @@ error pass2(char *prefix, int program_length) {
     }
 
     fprintf(objfp, "H%-6s%06X%06X\n", program_name, starting_address, program_length);    // header record
-    sprintf(now_text_record, "T%06X", starting_address);
+    sprintf(now_text_record, "T%06X", starting_address);		// text record initialized
 
     // while opcode != END
     while (lt != LT_END) {
@@ -434,7 +438,6 @@ void push_symtab(char *symbol, int address) {
             to_push->next = now;
             return;
         }
-        // TODO error handling for symbol duplicated
         prev = now;
         now = now->next;
     }
@@ -570,7 +573,8 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2) {
                 	        b = 0, p = 1;    
                     	    addr = sym1->address - pc;
                     	}
-					 	else if (0 <= sym1->address - base_register && sym1->address - base_register <= 4095) {		// base-relative
+					 	else if (base_register > -1 
+							&& 0 <= sym1->address - base_register && sym1->address - base_register <= 4095) {		// base-relative
                         	b = 1, p = 0;    	
                         	addr = sym1->address - base_register;
 						}
@@ -599,7 +603,7 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2) {
     return err;
 }
 
-// 
+// update the length of text record 
 void update_text_record_len(char *text_record, int len) {
     char tmp[3];
     sprintf(tmp, "%02X", len);
@@ -607,6 +611,7 @@ void update_text_record_len(char *text_record, int len) {
     text_record[8] = tmp[1];
 }
 
+// check whether the symbol is constant(int)
 int is_constant(char *symbol) {
     int i;
     for (i = 0; i < (int) strlen(symbol); i++) {
@@ -615,6 +620,7 @@ int is_constant(char *symbol) {
     return 1;
 }
 
+// initialize the glbal variables : modi_records and modi_record_num
 void init_modi_records(void) {
 	int i;
 	modi_record_num = 0;

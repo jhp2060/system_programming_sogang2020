@@ -36,10 +36,10 @@ void init_optab(char* filename) {
     // initialize OPTAB
     for (i = 0; i < OPTAB_SIZE; i++) OPTAB[i] = NULL;
     while(fscanf(fp, "%X%s%s", &new->opcode, new->mnemonic, new->format) != EOF) {
-	optab_index = get_optab_index(new->mnemonic);
-	new->next = OPTAB[optab_index];
-	OPTAB[optab_index] = new;
-	new = malloc(sizeof(opcode_node));
+		optab_index = get_optab_index(new->mnemonic);
+		new->next = OPTAB[optab_index];
+		OPTAB[optab_index] = new;
+		new = malloc(sizeof(opcode_node));
     }
     free(new);
     fclose(fp);
@@ -58,12 +58,12 @@ void free_optab(void) {
     int i;
     opcode_node *now, *next;
     for (i = 0; i < OPTAB_SIZE; i++) {
-	now = OPTAB[i];
-	while (now != NULL) {
-	    next = now->next;
-	    free(now);
-	    now = next;   
-	}	
+		now = OPTAB[i];
+		while (now != NULL) {
+	    	next = now->next;
+	    	free(now);
+	    	now = next;   
+		}	
     }
 }
 
@@ -72,9 +72,9 @@ opcode_node* get_opcode(char* mnemonic) {
     int index = get_optab_index(mnemonic);
     opcode_node* now = OPTAB[index];
     while (now != NULL) {	// find the opcode
-	if (strcmp(now->mnemonic, mnemonic) == 0)
-	    return now;
-	now = now->next;
+		if (strcmp(now->mnemonic, mnemonic) == 0)
+	    	return now;
+		now = now->next;
     }
     return NULL; 
 }
