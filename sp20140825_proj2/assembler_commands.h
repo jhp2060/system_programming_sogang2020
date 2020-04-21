@@ -17,6 +17,8 @@
 #define MAX_FILENAME_LEN 50
 #define MAX_OBJECT_CODE_LEN 20
 #define MAX_TEXT_RECORD_LEN 30
+#define MAX_MODI_RECORD 100
+#define MODI_RECORD_LEN 1 + 6 + 2 + 1 // M + addr(6) + length(2) + '\0' 
 
 typedef enum _linetype {
     LT_START,
@@ -41,6 +43,8 @@ typedef struct _sym_node {
 sym_node *SYMTAB;
 sym_node *RECENT_SYMTAB;
 int base_register;
+char modi_records[MAX_MODI_RECORD][MODI_RECORD_LEN];
+int modi_record_num;
 
 error assemble(char *filename, int token_count);
 
@@ -76,6 +80,8 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2);
 void update_text_record_len(char *text_record, int len);
 
 int is_constant(char *symbol);
+
+void init_modi_records(void);
 
 // funcitons for cases of assembly failure
 error delete_file(FILE *fp, char *filename, error e);
