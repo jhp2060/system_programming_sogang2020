@@ -46,48 +46,36 @@ int base_register;
 char modi_records[MAX_MODI_RECORD][MODI_RECORD_LEN];
 int modi_record_num;
 
-error assemble(char *filename, int token_count);
-    
+// commands
+error assemble(char *filename, int token_count); 
 error symbol(int token_count);
 
 // functions for assemble
 error pass1(FILE *fp, char *prefix, int *program_length);
-
 error pass2(char *prefix, int program_length);
 
 // processing strings
 void read_line(FILE *fp, char *line);
-
 linetype parse(char *line, char *label, char *opcode, char *op1, char *op2);
-
 linetype parse2(char *line, int *locctr, char *label, char *opcode, char *op1, char *op2);
 
 // functions for symtab
 void init_symtab(void);
-
 void free_symtab(sym_node *head);
-
 void push_symtab(char *symbol, int address);
-
 void preload_registers_on_symtab(void);
-
 int exists_in_symtab(char *symbol);
-
 sym_node *get_symbol(char *symbol);
 
+// functions for .obj, .lst files
 int get_byte_length(char *constant);
-
 error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2);
-
 void update_text_record_len(char *text_record, int len);
-
 int is_constant(char *symbol);
-
 void init_modi_records(void);
 
 // funcitons for cases of assembly failure
 error delete_file(FILE *fp, char *filename, error e);
-
 error assemble_failed(FILE *lstfp, FILE *objfp, char *prefix, error e);
 
 #endif

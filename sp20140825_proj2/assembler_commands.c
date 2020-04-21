@@ -382,7 +382,7 @@ linetype parse2(char *line, int *locctr, char *label, char *opcode, char *op1, c
 
     chptr = strtok(buf, " \t");
     if (!chptr || is_nullstr(chptr)) return LT_NOT_A_LINE;
-    *locctr = hexstr_to_int(chptr);
+    hexstr_to_int(chptr, locctr);
     return parse(chptr + strlen(chptr) + 1, label, opcode, op1, op2);
 }
 

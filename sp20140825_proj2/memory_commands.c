@@ -99,23 +99,19 @@ void print_chars(int row) {
 
 // validate one hexadecimal string argument
 error validate_one_hexstr_argument(char* arg1, int* ret1) {
-    *ret1 = hexstr_to_int(arg1);
-    if (*ret1 == ERR_WRONG_HEXSTR) {
-	return ERR_WRONG_HEXSTR;
-    }
-    return NO_ERR;
+    return hexstr_to_int(arg1, ret1);
 }
 
 // validate two hexadecimal string arguments
 error validate_two_hexstr_arguments(char* arg1, char* arg2, int* ret1, int* ret2) {
     if (arg1[strlen(arg1) - 1] != ',') {
-	return ERR_ARGS_FORMAT;
+		return ERR_ARGS_FORMAT;
     }
     arg1[strlen(arg1) - 1] = '\0';
-    *ret1 = hexstr_to_int(arg1);
-    *ret2 = hexstr_to_int(arg2);
-    if (*ret1 == ERR_WRONG_HEXSTR || *ret2 == ERR_WRONG_HEXSTR) {
-	return ERR_WRONG_HEXSTR;
+	error e1 = hexstr_to_int(arg1, ret1);
+    error e2 = hexstr_to_int(arg2, ret2);
+    if (e1 == ERR_WRONG_HEXSTR || e2 == ERR_WRONG_HEXSTR) {
+		return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;    
 }
@@ -128,11 +124,11 @@ error validate_three_hexstr_arguments(char* arg1, char* arg2, char* arg3,
     }
     arg1[strlen(arg1) - 1] = '\0';
     arg2[strlen(arg2) - 1] = '\0';
-    *ret1 = hexstr_to_int(arg1);
-    *ret2 = hexstr_to_int(arg2);
-    *ret3 = hexstr_to_int(arg3);
-    if (*ret1 == ERR_WRONG_HEXSTR || *ret2 == ERR_WRONG_HEXSTR || *ret3 == ERR_WRONG_HEXSTR) {
-	return ERR_WRONG_HEXSTR;
+    error e1 = hexstr_to_int(arg1, ret1);
+    error e2 = hexstr_to_int(arg2, ret2);
+    error e3 = hexstr_to_int(arg3, ret3);
+    if (e1 == ERR_WRONG_HEXSTR || e2 == ERR_WRONG_HEXSTR || e3 == ERR_WRONG_HEXSTR) {
+		return ERR_WRONG_HEXSTR;
     }
     return NO_ERR;    
 }

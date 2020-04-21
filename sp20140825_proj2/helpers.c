@@ -6,9 +6,9 @@ int strcmp_twice(char* norm, char* op1, char* op2) {
 }
 
 // transform the hexa string into int vlaue
-int hexstr_to_int(char* str) {
-    /*
-    int i, ret = 0, now, mult = 1;
+error hexstr_to_int(char* str, int *ret) {
+    int i, now, mult = 1;
+	*ret = 0;
     int len = strlen(str);
     for (i = len - 1; i >= 0; i--) {
         if (str[i] >= '0' && str[i] <= '9') now = str[i] - '0';
@@ -17,11 +17,10 @@ int hexstr_to_int(char* str) {
 	else if (str[i] >= 'a' && str[i] <= 'f')	// for the lowercase
 	    now = str[i] - 'a' + 10;
         else return ERR_WRONG_HEXSTR;			// wrong format of hexa string
-        ret += (now * mult);
+        *ret += (now * mult);
         mult *= 16;
     }
-    */
-    return (int)strtol(str, NULL, 16);
+	return NO_ERR;
 }
 
 // print out the error messages according to the error
@@ -29,57 +28,57 @@ void print_error_msg(error e){
     switch(e) {
     case NO_ERR:
     case NO_ERR_HISTORY:
-	break;
+		break;
     case ERR_WRONG_COMMAND:
-	printf("ERROR: wrong command to execute.\n");
-	break;
+		printf("ERROR: wrong command to execute.\n");
+		break;
     case ERR_WRONG_HEXSTR:
-	printf("ERROR: wrong hexadecimal string to turn into int.\n");
-	break;
+		printf("ERROR: wrong hexadecimal string to turn into int.\n");
+		break;
     case ERR_ARGS_FORMAT:
-	printf("ERROR: should use ',' between two arguments.\n");
-	break;
+		printf("ERROR: should use ',' between two arguments.\n");
+		break;
     case ERR_WRONG_ADDR:
-	printf("ERROR: wrong address to access.\n");
-	break;
+		printf("ERROR: wrong address to access.\n");
+		break;
     case ERR_WRONG_VAL:
-	printf("ERROR: wrong value to store.\n");
-	break;
+		printf("ERROR: wrong value to store.\n");
+		break;
     case ERR_WRONG_RANGE:
-	printf("ERROR: wrong range.\n");
-	break;
+		printf("ERROR: wrong range.\n");
+		break;
     case ERR_WRONG_TOKENS:
-	printf("ERROR: wrong argument numbers.\n");
-	break;
+		printf("ERROR: wrong argument numbers.\n");
+		break;
     case ERR_WRONG_MNEMONIC:
-	printf("ERROR: no opcode for that mnemonic.\n"); 
-	break;
+		printf("ERROR: no opcode for that mnemonic.\n"); 
+		break;
     case ERR_NOT_A_FILE:
-	printf("ERROR: no file to open.\n");
-	break;
+		printf("ERROR: no file to open.\n");
+		break;
     case ERR_NOT_A_ASM_FILE:
-	printf("ERROR: not an .asm file.\n");
-	break;
+		printf("ERROR: not an .asm file.\n");
+		break;
     case ERR_NO_END:
-	printf("ERROR: no END mnemonic in this .asm file.\n");
-	break;
+		printf("ERROR: no END mnemonic in this .asm file.\n");
+		break;
     case ERR_SYMBOL_DUPLICATED:
-	printf("ERROR: duplicated symbols does exist.\n");
-	break;
+		printf("ERROR: duplicated symbols does exist.\n");
+		break;
     case ERR_NO_INTERMEDIATE_FILE:
-	printf("ERROR: no intermediate file to load in pass2.\n");
-	break;
+		printf("ERROR: no intermediate file to load in pass2.\n");
+		break;
     case ERR_NO_INST_OPERAND:
-	printf("ERROR: 1 or more operands needed for the instruction.\n");
-	break;
+		printf("ERROR: 1 or more operands needed for the instruction.\n");
+		break;
     case ERR_NO_SYMBOL:
-	printf("ERROR: no symbol with that name in SYMTAB.\n");
-	break;
+		printf("ERROR: no symbol with that name in SYMTAB.\n");
+		break;
     case ERR_NO_INST_COMMA:
-	printf("ERROR: a comma(,) needed between two operands in the instruction.\n");
-	break;
+		printf("ERROR: a comma(,) needed between two operands in the instruction.\n");
+		break;
     default:
-	break;
+		break;
     }
 }
 

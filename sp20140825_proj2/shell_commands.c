@@ -57,8 +57,8 @@ error history(int token_count) {
     node* now = HEAD_LOG;
     int count = 1;
     while (now != NULL) {
-	printf("%4d %s\n", count++, now->str);
-	now = now->next;
+		printf("%4d %s\n", count++, now->str);
+		now = now->next;
     }
     return NO_ERR_HISTORY;
 }
@@ -72,9 +72,9 @@ error type(char* filename, int token_count) {
     char c;
     if (!fp) return ERR_NOT_A_FILE;
     while (1) {
-	c = fgetc(fp);
-	if (c == EOF) break;
-	printf("%c", c);
+		c = fgetc(fp);
+		if (c == EOF) break;
+		printf("%c", c);
     }
     printf("\n");
     fclose(fp);

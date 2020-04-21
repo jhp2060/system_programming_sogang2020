@@ -141,6 +141,7 @@ void init(void) {
     LAST_ADDR = -1;
     init_optab(OPCODE_FILENAME);
     init_symtab();
+	RECENT_SYMTAB = NULL;
 }
 
 // free the dynamically allocated memories
