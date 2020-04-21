@@ -77,6 +77,7 @@ command get_command(void) {
     else if (strcmp(cmd, "opcodelist") == 0) return CMD_OPCODELIST;
     else if (strcmp(cmd, "assemble") == 0) return CMD_ASSEMBLE;
     else if (strcmp(cmd, "type") == 0) return CMD_TYPE;
+	else if (strcmp(cmd, "symbol") == 0) return CMD_SYMBOL;
     return CMD_NONE;
 }
 
@@ -85,46 +86,49 @@ error execute_instructions(command c) {
     error e;
     switch(c) {
     case CMD_HELP:
-	e = help(TOKEN_COUNT);
-	break;
+		e = help(TOKEN_COUNT);
+		break;
     case CMD_QUIT:
-	e = quit(TOKEN_COUNT);
-	break;
+		e = quit(TOKEN_COUNT);
+		break;
     case CMD_DIR:
-	e = dir(TOKEN_COUNT);
-	break;
+		e = dir(TOKEN_COUNT);
+		break;
     case CMD_HISTORY:
-	if (TOKEN_COUNT == 1)
-	    push_log(tokens[0]);
-	e = history(TOKEN_COUNT);
-	break;
+		if (TOKEN_COUNT == 1)
+	    	push_log(tokens[0]);
+		e = history(TOKEN_COUNT);
+		break;
     case CMD_DUMP:
-	e = dump(tokens[1], tokens[2], TOKEN_COUNT);
+		e = dump(tokens[1], tokens[2], TOKEN_COUNT);
         break;
     case CMD_EDIT:
-	e = edit(tokens[1], tokens[2], TOKEN_COUNT);
-	break;
+		e = edit(tokens[1], tokens[2], TOKEN_COUNT);
+		break;
     case CMD_FILL:
-	e = fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT);
-	break;
+		e = fill(tokens[1], tokens[2], tokens[3], TOKEN_COUNT);
+		break;
     case CMD_RESET:
-	reset(TOKEN_COUNT);
-	break;
+		e = reset(TOKEN_COUNT);
+		break;
     case CMD_OPCODE:
-	e = opcode(tokens[1], TOKEN_COUNT);
-	break;
+		e = opcode(tokens[1], TOKEN_COUNT);
+		break;
     case CMD_OPCODELIST:
-	e = opcodelist(TOKEN_COUNT);
-	break;
+		e = opcodelist(TOKEN_COUNT);
+		break;
     case CMD_ASSEMBLE:
-	e = assemble(tokens[1], TOKEN_COUNT);
-	break;
+		e = assemble(tokens[1], TOKEN_COUNT);
+		break;
     case CMD_TYPE:
-	e = type(tokens[1], TOKEN_COUNT);
-	break;
+		e = type(tokens[1], TOKEN_COUNT);
+		break;
+	case CMD_SYMBOL:
+		e = symbol(TOKEN_COUNT);
+		break;
     default:
-	e = ERR_WRONG_COMMAND;
-	break;
+		e = ERR_WRONG_COMMAND;
+		break;
     }
     return e;
 }
