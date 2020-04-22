@@ -328,10 +328,12 @@ void read_line(FILE *fp, char *line) {
 // tokenize a line, seperated into label, opcode, op1, op2
 linetype parse(char *line, char *label, char *opcode, char *op1, char *op2) {
     char buf[MAX_LINE_LEN], *chptr;
-    linetype ret;
+
+    // initialize the value for ret
+    linetype ret = -1;
     strcpy(buf, line);
 
-    // initialize value 
+    // initialize value
     strcpy(label, "\0");
     strcpy(opcode, "\0");
     strcpy(op1, "\0");
