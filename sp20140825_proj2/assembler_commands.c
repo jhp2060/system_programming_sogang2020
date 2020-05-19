@@ -249,8 +249,8 @@ error pass2(char *prefix, int program_length) {
                     printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
                     return assemble_failed(lstfp, objfp, prefix, e);
                 }
-            } 
-			else if (lt == LT_BYTE) { // convert constant to object code
+            }
+            else if (lt == LT_BYTE) { // convert constant to object code
 				char tmp_op1[MAX_OPERAND_LEN];
                 if (op1[0] == 'C') {
 					strcpy(tmp_op1, op1);
@@ -260,15 +260,15 @@ error pass2(char *prefix, int program_length) {
                         sprintf(tmpbuf, "%02X", (int) *(chptr + i));
                         strcat(object_code, tmpbuf);
                     }
-                } 
-				else if (op1[0] == 'X') {
+                }
+                else if (op1[0] == 'X') {
 					strcpy(tmp_op1, op1);
 					char *chptr = strtok(tmp_op1, " X'`");
 					strcpy(object_code, chptr);
                 }
-            } 
-			else if (lt == LT_WORD) sprintf(object_code, "%06X", atoi(op1)); 	// convert constant to object code
-			else if (lt == LT_BASE) { 		// set base
+            }
+            else if (lt == LT_WORD) sprintf(object_code, "%06X", atoi(op1)); 	// convert constant to object code
+            else if (lt == LT_BASE) { 		// set base
                 s_node = get_symbol(op1);
                 if (!s_node) {
                     printf("WRONG SYMBOL: %s\n", op1);
@@ -277,12 +277,12 @@ error pass2(char *prefix, int program_length) {
                 }
                 base_register = s_node->address;
 				locctr = -1;
-            } 
-			else if (lt == LT_NOBASE) {
+            }
+            else if (lt == LT_NOBASE) {
                 base_register = -1;
 				locctr = -1;
             }
-			else if (lt == LT_RESW || lt == LT_RESB) {
+            else if (lt == LT_RESW || lt == LT_RESB) {
 			    // keep reading lines till no LT_RESW or LT_RESB to ensure no more consecutive variables
 			    while (lt == LT_RESW || lt == LT_RESB ) {
                     // write listing line, no object code to write on .obj file
@@ -314,7 +314,7 @@ error pass2(char *prefix, int program_length) {
 			    continue;
 			}
         }
-		else {
+        else {
 			locctr = -1;
 			strcpy(object_code, "\0");
 		}
@@ -435,12 +435,15 @@ void init_symtab(void) {
 void free_symtab(sym_node *head) {
     sym_node *now = head;
     sym_node *tmp = NULL;
-    while (now) {
+    while (now != NULL) {
         tmp = now;
         now = now->next;
         free(tmp);
     }
-    head = NULL;
+    if (head == SYMTAB)
+        SYMTAB = NULL;
+    else if (head == RECENT_SYMTAB)
+        RECENT_SYMTAB = NULL;
 }
 
 // return whether that symbol exists in SYMTAB
@@ -566,8 +569,8 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2) {
             if (is_nullstr(op2)) { // only one operand
                 sprintf(ret, "%02X%X%X", op_node->opcode, sym1->address, 0);
                 break;
-            } 
-			else {  // 2 operands needed
+            }
+            else {  // 2 operands needed
                 if (op1[strlen(op1) - 1] != ',') {
                     printf("NO COMMA BETWEEN: %s and  %s\n", op1, op2);
                     return ERR_NO_INST_COMMA;
@@ -607,25 +610,25 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2) {
                 	        b = 0, p = 1;    
                     	    addr = sym1->address - pc;
                     	}
-					 	else if (base_register > -1 
+            	        else if (base_register > -1
 							&& 0 <= sym1->address - base_register && sym1->address - base_register <= 4095) {		// base-relative
                         	b = 1, p = 0;    	
                         	addr = sym1->address - base_register;
 						}
-						else return ERR_WRONG_ADDR;
+            	        else return ERR_WRONG_ADDR;
 					}
-					else {    				// format4 => direct addressing with symbol
+        	        else {    				// format4 => direct addressing with symbol
 						b = 0, p = 0;
                     	addr = sym1->address;
 						sprintf(modi_str, "M%06X%02X", pc - 3, 5);
 						strcpy(modi_records[modi_record_num++], modi_str);						
                 	}
 				}
-				else if (op1[0] == '#' && is_constant(chptr)) {
+	            else if (op1[0] == '#' && is_constant(chptr)) {
 					addr = atoi(op1+1);
 					b = 0, p = 0;
             	}
-				else{
+	            else{
                     printf("WRONG SYMBOL: %s\n", chptr);
                     return ERR_NO_SYMBOL;
 				}
@@ -633,7 +636,7 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2) {
 
             if (format == 3)
 				sprintf(ret, "%02X%0X%03X", (op_node->opcode + 2 * n + i), (8 * x + 4 * b + 2 * p + e), addr & 0b111111111111);
-    	    else if (format == 4)
+            else // format == 4
 				sprintf(ret, "%02X%0X%05X", (op_node->opcode + 2 * n + i), (8 * x + 4 * b + 2 * p + e), addr & 0b11111111111111111111);
 			break;
     }

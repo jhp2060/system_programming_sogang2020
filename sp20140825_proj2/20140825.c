@@ -6,22 +6,22 @@ int main() {
     init();
     command ret;
     while(1) {
-	flush_input();
-	printf("sicsim> ");
-	scanf("%[^\n]", input);
-	strcpy(log_sentence, input);		// copy for push_log
-	getchar();				// flush the buffer
-	tokenize_input();
-	ret = get_command();
-	e = execute_instructions(ret);
-	if (ret == CMD_QUIT && e == NO_ERR) break;
-	if (e == NO_ERR) // do not make wrong commands in the log 
-	    push_log(log_sentence);
-	else
-	    print_error_msg(e);
+        flush_input();
+        printf("sicsim> ");
+        scanf("%[^\n]", input);
+        strcpy(log_sentence, input);		// copy for push_log
+        getchar();				// flush the buffer
+	    tokenize_input();
+	    ret = get_command();
+	    e = execute_instructions(ret);
+	    if (ret == CMD_QUIT && e == NO_ERR) break;
+	    if (e == NO_ERR) // do not make wrong commands in the log
+    	    push_log(log_sentence);
+	    else
+	        print_error_msg(e);
     }
     exit_program();
-    return 0; 
+    return 0;
 }
 
 void flush_input(void) {
@@ -31,7 +31,7 @@ void flush_input(void) {
 // flush the tokens before getting new tokens
 void flush_tokens(void) {
     int i;
-    for (i = 0; i < MAX_TOKENS; i++) strcpy(tokens[i], "\0"); 
+    for (i = 0; i < MAX_TOKENS; i++) strcpy(tokens[i], "\0");
     TOKEN_COUNT = 0;
 }
 
@@ -50,7 +50,7 @@ int get_next_token_idx(char* str) {
 void tokenize_input(void) {
     int start_idx = 0, next_idx = 0;
     flush_tokens();
-    
+
     while (input[start_idx] == ' ' || input[start_idx] == '\t') start_idx++;		// remove whitespaces in left
     while (start_idx < MAX_INPUT_LEN) {
 	next_idx = get_next_token_idx(input + start_idx);
@@ -78,7 +78,7 @@ command get_command(void) {
     else if (strcmp(cmd, "assemble") == 0) return CMD_ASSEMBLE;
     else if (strcmp(cmd, "type") == 0) return CMD_TYPE;
 	else if (strcmp(cmd, "symbol") == 0) return CMD_SYMBOL;
-    return CMD_NONE;
+    else return CMD_NONE;
 }
 
 // exectue the instructions according to the command
@@ -141,7 +141,7 @@ void init(void) {
     LAST_ADDR = -1;
     init_optab(OPCODE_FILENAME);
     init_symtab();
-	RECENT_SYMTAB = NULL;
+    RECENT_SYMTAB = NULL;
 }
 
 // free the dynamically allocated memories
