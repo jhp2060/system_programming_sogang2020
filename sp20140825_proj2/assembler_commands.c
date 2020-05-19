@@ -127,7 +127,7 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
     // while opcode != END
     while (lt != LT_END) {
         if (feof(fp)) {
-            printf("[ERROR AT LINE] %d", linenum * LINE_MULTIPLIER);
+            printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
             return delete_file(ifp, ifn, ERR_NO_END);
         }
 
@@ -136,7 +136,7 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
         if (lt != LT_COMMENT) {
             if (!is_nullstr(label)) {
                 if (exists_in_symtab(label)) {
-                    printf("[ERROR AT LINE] %d", linenum * LINE_MULTIPLIER);
+                    printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
                     return delete_file(ifp, ifn, ERR_SYMBOL_DUPLICATED);
                 }
                 push_symtab(label, locctr);
@@ -157,8 +157,8 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
             else if (lt == LT_RESB) locctr_delta = atoi(op1);
             else if (lt == LT_BYTE) locctr_delta = get_byte_length(op1);
             else {
-                printf("[ERROR AT LINE] %d", linenum * LINE_MULTIPLIER);
-                printf("WRONG MNEMONIC: %s ", opcode);                // validate instruction
+                printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
+                printf("(WRONG MNEMONIC: %s) ", opcode);                // validate instruction
                 return delete_file(ifp, ifn, ERR_WRONG_MNEMONIC);
             }
             locctr += locctr_delta;
