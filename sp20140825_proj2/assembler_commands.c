@@ -218,7 +218,7 @@ error pass2(char *prefix, int program_length) {
     }
 
     fprintf(objfp, "H%-6s%06X%06X\n", program_name, starting_address, program_length);    // header record
-    sprintf(now_text_record, "T%06X", starting_address);		// text record initialized
+    sprintf(now_text_record, "T%06XLL", starting_address);		// text record initialized
 
     // while opcode != END
     while (lt != LT_END) {
@@ -274,7 +274,7 @@ error pass2(char *prefix, int program_length) {
                 update_text_record_len(now_text_record, now_text_record_len);
                 fprintf(objfp, "%s\n", now_text_record);                // write text record on obj file
 				now_text_record_len = 0;
-                sprintf(now_text_record, "T%06X", locctr);				// initialize new text record
+                sprintf(now_text_record, "T%06XLL", locctr);				// initialize new text record
             }
 			
 			// add object code to text record
