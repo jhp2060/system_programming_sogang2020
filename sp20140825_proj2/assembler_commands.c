@@ -115,7 +115,6 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
         locctr = starting_address;
 
 		// write line to the intermediate file
-		linenum++;
         fprintf(ifp, "%04X %-10s %-10s %s %s\n", locctr, label, opcode, op1, op2);
 
         // read next line
@@ -157,8 +156,8 @@ error pass1(FILE *fp, char *prefix, int *program_length) {
             else if (lt == LT_RESB) locctr_delta = atoi(op1);
             else if (lt == LT_BYTE) locctr_delta = get_byte_length(op1);
             else {
+                printf("WRONG MNEMONIC: %s\n", opcode);                // validate instruction
                 printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
-                printf("(WRONG MNEMONIC: %s) ", opcode);                // validate instruction
                 return delete_file(ifp, ifn, ERR_WRONG_MNEMONIC);
             }
             locctr += locctr_delta;
@@ -272,8 +271,8 @@ error pass2(char *prefix, int program_length) {
 			else if (lt == LT_BASE) { 		// set base
                 s_node = get_symbol(op1);
                 if (!s_node) {
+                    printf("WRONG SYMBOL: %s\n", op1);
                     printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
-                    printf("(WRONG SYMBOL: %s) ", op1);
                     return assemble_failed(lstfp, objfp, prefix, ERR_NO_SYMBOL);
                 }
                 base_register = s_node->address;
