@@ -63,7 +63,7 @@ void print_error_msg(error e){
 		printf("ERROR: no END mnemonic in this .asm file.\n");
 		break;
     case ERR_SYMBOL_DUPLICATED:
-		printf("ERROR: duplicated symbols does exist.\n");
+		printf("ERROR: duplicated symbol does exist.\n");
 		break;
     case ERR_NO_INTERMEDIATE_FILE:
 		printf("ERROR: no intermediate file to load in pass2.\n");
