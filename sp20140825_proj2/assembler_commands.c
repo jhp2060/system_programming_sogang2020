@@ -196,8 +196,8 @@ error pass2(char *prefix, int program_length) {
     char object_code[MAX_OBJECT_CODE_LEN];
     char now_text_record[1 + 6 + 2 + MAX_TEXT_RECORD_LEN * 20 + 1]; // T addr(6) length(2) textrecord \0(1)
     int locctr = 0, linenum = 1, starting_address = 0;
-    int now_text_record_len = 0, sepflag = 0;
-    linetype lt, prev_lt;
+    int now_text_record_len = 0, varflag = 0, sepflag = 0;
+    linetype lt;
     opcode_node *op_node;
     sym_node *s_node;
     error e;
@@ -282,12 +282,23 @@ error pass2(char *prefix, int program_length) {
                 base_register = -1;
 				locctr = -1;
             }
-			
-			// if object code will not fit into the currnet text record
-			if ((lt == LT_RESW || lt == LT_RESB) && (prev_lt != LT_RESW && prev_lt != LT_RESB)) sepflag = 1; 
+			else if (lt == LT_RESW || lt == LT_RESB) {
+			    // keep reading lines till no LT_RESW or LT_RESB to ensure no more consecutive variables
+			    while (lt == LT_RESW || lt == LT_RESB ) {
+                    // write listing line, no object code to write on .obj file
+                    fprintf(lstfp, "%3d %-40s %-s\n", (linenum++) * LINE_MULTIPLIER, line, object_code);
+
+                    read_line(ifp, line);
+                    lt = parse2(line, &locctr, label, opcode, op1, op2);
+                }
+			    varflag = 1;
+			    sepflag = 1;
+            }
+
+			// if object code will not fit into the current text record
 			if (now_text_record_len + strlen(object_code) / 2 > MAX_TEXT_RECORD_LEN) sepflag = 1;
-			if (sepflag) {
-				sepflag = 0;
+			if (sepflag){
+			    sepflag = 0;
                 update_text_record_len(now_text_record, now_text_record_len);
                 fprintf(objfp, "%s\n", now_text_record);                // write text record on obj file
 				now_text_record_len = 0;
@@ -297,6 +308,11 @@ error pass2(char *prefix, int program_length) {
 			// add object code to text record
 			now_text_record_len += strlen(object_code) / 2;				// length metric is a byte, which is presented as 2 hexadecimal number(2 characters)
 			strcat(now_text_record, object_code);
+
+			if (varflag){ // flag set after meeting all of the consecutive LT_RESW or LT_RESB
+			    varflag = 0;
+			    continue;
+			}
         }
 		else {
 			locctr = -1;
@@ -309,7 +325,6 @@ error pass2(char *prefix, int program_length) {
 
 		// read next input line
         read_line(ifp, line);
-		prev_lt = lt;
         lt = parse2(line, &locctr, label, opcode, op1, op2);
     }
 
@@ -610,7 +625,10 @@ error get_object_code(char *ret, int pc, char *opcode, char *op1, char *op2) {
 					addr = atoi(op1+1);
 					b = 0, p = 0;
             	}
-				else return ERR_NO_SYMBOL;
+				else{
+                    printf("WRONG SYMBOL: %s\n", chptr);
+                    return ERR_NO_SYMBOL;
+				}
 			}
 
             if (format == 3)
