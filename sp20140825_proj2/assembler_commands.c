@@ -233,7 +233,10 @@ error pass2(char *prefix, int program_length) {
 
     // while opcode != END
     while (lt != LT_END) {
-        if (feof(ifp)) return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
+        if (feof(ifp)) {
+            printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
+            return assemble_failed(lstfp, objfp, prefix, ERR_NO_END);
+        }
 		strcpy(object_code, "\0");
         if (lt != LT_COMMENT) {
 			// get '+' removed from opcode
@@ -243,7 +246,10 @@ error pass2(char *prefix, int program_length) {
 			// if found opcode in optab
             if (lt == LT_OPCODE && (op_node = get_opcode(tmp_opcode)) != NULL) {
                 e = get_object_code(object_code, locctr, opcode, op1, op2);
-                if (e != NO_ERR) return assemble_failed(lstfp, objfp, prefix, e);
+                if (e != NO_ERR) {
+                    printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
+                    return assemble_failed(lstfp, objfp, prefix, e);
+                }
             } 
 			else if (lt == LT_BYTE) { // convert constant to object code
 				char tmp_op1[MAX_OPERAND_LEN];
@@ -266,7 +272,8 @@ error pass2(char *prefix, int program_length) {
 			else if (lt == LT_BASE) { 		// set base
                 s_node = get_symbol(op1);
                 if (!s_node) {
-                    printf("WRONG SYMBOL: %s\n", op1);
+                    printf("[ERROR AT LINE %d] ", linenum * LINE_MULTIPLIER);
+                    printf("(WRONG SYMBOL: %s) ", op1);
                     return assemble_failed(lstfp, objfp, prefix, ERR_NO_SYMBOL);
                 }
                 base_register = s_node->address;
