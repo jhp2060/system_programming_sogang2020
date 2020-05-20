@@ -680,11 +680,13 @@ error delete_file(FILE *fp, char *filename, error e) {
 // close the files on writing and delete them(.lst, .obj) in pass2
 error assemble_failed(FILE *lstfp, FILE *objfp, char *prefix, error e) {
     char filename[MAX_FILENAME_LEN];
-    strcpy(filename, prefix);
 
     fclose(lstfp);
     fclose(objfp);
 
+    strcpy(filename, prefix);
+    remove(strcat(filename, ".itm"));
+    strcpy(filename, prefix);
     remove(strcat(filename, ".lst"));
     strcpy(filename, prefix);
     remove(strcat(filename, ".obj"));
