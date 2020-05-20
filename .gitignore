@@ -10,9 +10,9 @@
 *.out
 *.o
 *.tar
-intermediate
 *.lst
 *.itm
 .idea/
 CMakeLists.txt
 cmake-build-debug/
+.DS_Store
