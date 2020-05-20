@@ -3,6 +3,7 @@
 // print out help text for commands
 error help(int token_count) {
     if (token_count != 1) return ERR_WRONG_TOKENS;
+    // proj1
     printf("h[elp]\n");
     printf("d[ir]\n");
     printf("q[uit]\n");
@@ -13,9 +14,15 @@ error help(int token_count) {
     printf("reset\n");
     printf("opcode mnemonic\n");
     printf("opcodelist\n");
+    // proj2
     printf("assemble filename\n");
     printf("type filename\n");
     printf("symbol\n");
+    // proj3
+    printf("progaddr address\n");
+    printf("loader object filename1 [object filename2] [...]\n");
+    printf("bp [address]\n");
+    printf("bp clear\n");
     return NO_ERR;
 }
 

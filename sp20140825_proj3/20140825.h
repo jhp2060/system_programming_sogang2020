@@ -37,6 +37,9 @@ typedef enum _command {
     CMD_ASSEMBLE,
     CMD_TYPE,
     CMD_SYMBOL,
+    CMD_PROGADDR,
+    CMD_LOADER,
+    CMD_BP,
 }command;
 
 void flush_input(void);
