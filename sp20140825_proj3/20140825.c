@@ -81,6 +81,7 @@ command get_command(void) {
     else if (strcmp(cmd, "progaddr") == 0) return CMD_PROGADDR;
     else if (strcmp(cmd, "loader") == 0) return CMD_LOADER;
     else if (strcmp(cmd, "bp") == 0) return CMD_BP;
+    else if (strcmp(cmd, "run") == 0) return CMD_RUN;
     else return CMD_NONE;
 }
 
@@ -130,10 +131,16 @@ error execute_instructions(command c) {
             e = symbol(TOKEN_COUNT);
             break;
         case CMD_PROGADDR:
+            e = progaddr(tokens[1], TOKEN_COUNT);
             break;
         case CMD_LOADER:
+            e = loader(tokens, TOKEN_COUNT);
             break;
         case CMD_BP:
+            e = bp(tokens[1], TOKEN_COUNT);
+            break;
+        case CMD_RUN:
+            e = run(TOKEN_COUNT);
             break;
         default:
             e = ERR_WRONG_COMMAND;
@@ -151,6 +158,8 @@ void init(void) {
     init_optab(OPCODE_FILENAME);
     init_symtab();
     RECENT_SYMTAB = NULL;
+    PROG_ADDR = 0;
+    BP_HEAD = NULL;
 }
 
 // free the dynamically allocated memories
@@ -159,4 +168,5 @@ void exit_program(void) {
     free_optab();
     free_symtab(SYMTAB);
     free_symtab(RECENT_SYMTAB);
+    // free_bp();
 }

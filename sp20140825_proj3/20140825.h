@@ -10,6 +10,7 @@
 #include "memory_commands.h"
 #include "opcode_commands.h"
 #include "assembler_commands.h"
+#include "loader_commands.h"
 
 #define MAX_INPUT_LEN 100
 #define MAX_TOKEN_LEN 20
@@ -40,6 +41,7 @@ typedef enum _command {
     CMD_PROGADDR,
     CMD_LOADER,
     CMD_BP,
+    CMD_RUN,
 }command;
 
 void flush_input(void);
