@@ -12,7 +12,6 @@
 *.tar
 intermediate
 *.lst
-*.obj
 *.itm
 .idea/
 CMakeLists.txt
