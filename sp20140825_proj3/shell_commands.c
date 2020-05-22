@@ -20,7 +20,7 @@ error help(int token_count) {
     printf("symbol\n");
     // proj3
     printf("progaddr address\n");
-    printf("loader object filename1 [object filename2] [...]\n");
+    printf("loader object_filename1 [object_filename2] [...]\n");
     printf("bp [address]\n");
     printf("bp clear\n");
     printf("run\n");

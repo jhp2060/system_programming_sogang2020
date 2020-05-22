@@ -158,7 +158,7 @@ void init(void) {
     init_optab(OPCODE_FILENAME);
     init_symtab();
     RECENT_SYMTAB = NULL;
-    PROG_ADDR = 0;
+    PROGADDR = 0;
     BP_HEAD = NULL;
 }
 
