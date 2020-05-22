@@ -4,12 +4,16 @@ error progaddr(char *address, int token_count) {
     if (token_count != 2) return ERR_WRONG_TOKENS;
 
     int addr = -1;
-    error ret;
-    hexstr_to_int(address, &addr);
-    ret = validate_address(addr);
-    if (ret != NO_ERR) return ret;
+    error e;
+
+    e = hexstr_to_int(address, &addr);
+    if (e != NO_ERR) return e;
+
+    e = validate_address(addr);
+    if (e != NO_ERR) return e;
+
     PROGADDR = addr;
-    return ret;
+    return NO_ERR;
 }
 
 error loader(char **filenames, int token_count) {
