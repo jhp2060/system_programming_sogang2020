@@ -7,7 +7,7 @@
 
 #define MEM_SIZE 1048576
 
-char MEM[MEM_SIZE];
+int MEM[MEM_SIZE];
 int LAST_ADDR;
 
 error dump(char* start, char* end, int token_count);
