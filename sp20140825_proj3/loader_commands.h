@@ -49,8 +49,12 @@ error bp(char* address, int token_count);
 error run(int token_count);
 
 /* functions for EXECUTING COMMANDS */
+// LOADER
 void loader_pass1(FILE* fp);
 void loader_pass2(FILE *fp);
+
+// RUN
+void dumpreg(void);
 
 /* functions for DATA STRUCTURES */
 
@@ -64,8 +68,9 @@ es_node* get_es(char*es_name);
 void init_estab();
 void free_estab();
 
-// functions for ...
+// tools
 void init_registers(int l, int pc);
 void get_Nbytes(char *dest, char *src, int N);
 void read_line2(FILE *fp, char *line);
+
 #endif

@@ -49,7 +49,6 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     i = 1;
     objfile = filenames[i++];
 
-    TOTLTH = 0;
     CSADDR = PROGADDR;
     EXECADDR = PROGADDR;
 
@@ -112,21 +111,28 @@ error bp(char *address, int token_count) {
 error run(int token_count) {
     if (token_count != 1) return ERR_WRONG_TOKENS;
 
+    int limit = PROGADDR + reg_L;
+    int opcode;
+    int n, i, x, b, p, e;
+    int disp;
 
-    // TODO run the program
+    while (reg_PC < limit) {
+        int startloc = MEM[reg_PC];
 
-    printf("A : %06X   X : %06X\n", reg_A, reg_X);
-    printf("L : %06X  PC : %06X\n", reg_L, reg_PC);
-    printf("B : %06X   S : %06X\n", reg_B, reg_S);
-    printf("T : %06X\n", reg_T);
+        if (BPCHK[reg_PC]) {
+            dumpreg();
+            printf("\t\t\t\tStop at checkpoint[%X]\n", reg_PC++);
+            return NO_ERR;
+        }
+        reg_PC++;
+    }
 
-    // TODO whether bp exists or not
-
+    dumpreg();
+    printf("End Program\n");
     return NO_ERR;
 }
 
 /* functions for EXECUTING COMMANDS */
-
 // pass1 for loader: assign addresses to all external symbols
 void loader_pass1(FILE *fp) {
     char *chptr;
@@ -358,6 +364,14 @@ void loader_pass2(FILE *fp) {
         }
     }
 
+}
+
+// print out the values of registers
+void dumpreg(void){
+    printf("A : %06X   X : %06X\n", reg_A, reg_X);
+    printf("L : %06X  PC : %06X\n", reg_L, reg_PC);
+    printf("B : %06X   S : %06X\n", reg_B, reg_S);
+    printf("T : %06X\n", reg_T);
 }
 
 // push a break point into BPTAB
