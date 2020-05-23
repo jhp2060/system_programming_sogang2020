@@ -31,8 +31,8 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     EXECADDR = PROGADDR;
 
     // print loadmap
-    printf("%7-s  %7-s  %7-s  %7-s\n", "control", "symbol", "address", "length");
-    printf("%7-s  %7-s\n", "section", "name");
+    printf("%-7s  %-7s  %-7s  %-7s\n", "control", "symbol", "address", "length");
+    printf("%-7s  %-7s\n", "section", "name");
     printf("-----------------------------------\n");
     while (!is_nullstr(objfile)) {
         objfp = fopen(objfile, "r");
@@ -44,7 +44,7 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
         objfile = filenames[i++];
     }
     printf("-----------------------------------\n");
-    printf("%7-s  %7-s  %7-s  %04X   \n", " ", "  total", "length", TOTLTH);
+    printf("%-7s  %-7s  %-7s  %04X   \n", " ", "  total", "length", TOTLTH);
 
     i = 1;
     objfile = filenames[i++];
@@ -112,7 +112,6 @@ error bp(char *address, int token_count) {
 error run(int token_count) {
     if (token_count != 1) return ERR_WRONG_TOKENS;
 
-    bp_node *now = BPTAB;
 
     // TODO run the program
 
@@ -163,7 +162,7 @@ void loader_pass1(FILE *fp) {
                 hexstr_to_int(tmp2, &CSLTH);
 
                 TOTLTH += CSLTH;
-                printf("%7-s  %7-s  %04X     %04X   \n", tmp1, " ", CSADDR + address, CSLTH);
+                printf("%-7s  %-7s  %04X     %04X   \n", tmp1, " ", CSADDR + address, CSLTH);
 
                 break;
             case 'D':   // D record
@@ -188,7 +187,7 @@ void loader_pass1(FILE *fp) {
 
                     push_es(tmp1, address + CSADDR);
 
-                    printf("%7-s  %7-s  %04X   \n", " ", tmp1, CSADDR + address);
+                    printf("%-7s  %-7s  %04X   \n", " ", tmp1, CSADDR + address);
 
                     chptr += 6;
                     if (*(chptr) == '\0') break;
@@ -438,7 +437,7 @@ void free_estab() {
         while (now) {
             tmp = now;
             now = now->next;
-            free(now);
+            free(tmp);
         }
         ESTAB[i] = NULL;
     }

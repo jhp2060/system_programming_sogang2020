@@ -107,7 +107,7 @@ error signed_6digit_hexstr_to_int(char* str, int* ret){
 
     if (e != NO_ERR) return e;
 
-    if (strlen(str) == 6 && (!isnumber(str[0]) || str[0] >= '8')) is_negative = 1;
+    if (strlen(str) == 6 && (!isdigit(str[0]) || str[0] >= '8')) is_negative = 1;
 
     if (is_negative){
         strcat(sign_ext, str);
