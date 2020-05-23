@@ -41,9 +41,9 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     printf("-----------------------------------\n");
     printf("%7-s  %7-s  %7-s  %04X   \n", " ", "  total", "length", TOTLTH);
 
-    init_registers(TOTLTH, PROGADDR);
-
     // TODO pass2
+
+    init_registers(TOTLTH, PROGADDR);
 
     return NO_ERR;
 }
@@ -108,11 +108,10 @@ error run(int token_count) {
 
 /* functions for EXECUTING COMMANDS */
 
-// pass1 for loader : assign addresses to all external symbols
+// pass1 for loader: assign addresses to all external symbols
 void loader_pass1(FILE *fp) {
     char *chptr;
     char line[MAX_OBJ_LINE_LEN];
-    char word[MAX_OBJ_LINE_LEN];
     char tmp1[MAX_OBJ_LINE_LEN];
     char tmp2[MAX_OBJ_LINE_LEN];
     int address;
@@ -121,21 +120,29 @@ void loader_pass1(FILE *fp) {
 
     read_line(fp, line);
     while (!feof(fp)) {
-        switch (line[0]){
+        switch (line[0]) {
             case 'H':     // H record
                 // get control section name
                 chptr = strtok(line, " ");
-                strcpy(tmp1, chptr + 1);
+                chptr++;
+                if (strlen(chptr) > 6) {
+                    strncpy(tmp1, chptr, 6);
+                    tmp1[6] = '\0';
+                    chptr += 6;
+                }
+                else {
+                    strcpy(tmp1, chptr);
+                    chptr = strtok(NULL, " ");
+                }
 
                 // get starting address of object program
-                chptr = strtok(NULL, " ");
-                get_3bytes(tmp2, chptr);
+                get_Nbytes(tmp2, chptr, 3);
                 hexstr_to_int(tmp2, &address);
 
                 push_es(tmp1, CSADDR + address);
 
                 // get the length of object program in bytes
-                get_3bytes(tmp2, chptr + 6);
+                get_Nbytes(tmp2, chptr + 6, 3);
                 hexstr_to_int(tmp2, &CSLTH);
 
                 TOTLTH += CSLTH;
@@ -143,27 +150,33 @@ void loader_pass1(FILE *fp) {
 
                 break;
             case 'D':   // D record
-                // get the first external symbol's name
+                // skip 'D'
                 chptr = strtok(line, " ");
                 chptr++;
-                strcpy(tmp1, chptr);
 
                 while (1) {
+                    // get the name of external symbol
+                    if (strlen(chptr) > 6){
+                        strncpy(tmp1, chptr, 6);
+                        tmp1[6] = '\0';
+                        chptr += 6;
+                    }
+                    else {
+                        strcpy(tmp1, chptr);
+                        chptr = strtok(NULL, " ");
+                    }
+
                     // get the address of external symbol
-                    chptr = strtok(NULL, " ");
-                    get_3bytes(tmp2, chptr);
+                    get_Nbytes(tmp2, chptr, 3);
                     hexstr_to_int(tmp2, &address);
 
                     push_es(tmp1, address + CSADDR);
 
-                    printf("%7-s  %7-s  %04X   \n", " ", tmp1, CSADDR + address );
+                    printf("%7-s  %7-s  %04X   \n", " ", tmp1, CSADDR + address);
 
-                    if (*(chptr + 6) == '\0') break;
-
-                    // get the name of a external symbol
-                    strcpy(tmp1, chptr + 6);
+                    chptr += 6;
+                    if (*(chptr) == '\0') break;
                 }
-
                 break;
             case 'E':
                 CSADDR += CSLTH;
@@ -175,10 +188,86 @@ void loader_pass1(FILE *fp) {
     }
 }
 
-void loader_pass2() {
+// pass2 for loader: performs the actual loading, relocation, and linking
+void loader_pass2(FILE *fp) {
+    char *chptr;
+    char line[MAX_OBJ_LINE_LEN];
+    char tmp1[MAX_OBJ_LINE_LEN];
+    char tmp2[MAX_OBJ_LINE_LEN];
+    int address;
+
+    int rftab[MAX_REFERENCES];
+    int rfidx;
+
+    int treclim, byteval;
+
+    CSADDR = PROGADDR;
+
+    read_line(fp, line);
+    while (!feof(fp)) {
+        switch (line[0]) {
+            case 'H':     // H record
+                // get control section name
+                chptr = strtok(line, " ");
+                strcpy(tmp1, chptr + 1);
+
+                es_node *csec = get_es(tmp1);
+                rftab[1] = csec->addr;
+                break;
+            case 'R':
+                chptr = strtok(line, " ");
+                chptr++;
+
+                while (chptr) {
+                    // get the address of external symbol
+                    get_Nbytes(tmp1, chptr, 1);
+                    if (hexstr_to_int(tmp1, &rfidx) == NO_ERR) {
+                        strcpy(tmp2, chptr + 2);
+                        es_node *es = get_es(tmp2);
+                        rftab[rfidx] = es->addr;
+                    }
+                    chptr = strtok(NULL, " ");
+                }
+                break;
+            case 'T':     // T record
+                // get starting address of object code in a record
+                chptr = strtok(line, " ");
+                chptr++;
+                get_Nbytes(tmp1, chptr, 3);
+                hexstr_to_int(tmp1, &reg_PC); // set PC
+                chptr += 6;
+
+                // get length of object code
+                get_Nbytes(tmp1, chptr, 1);
+                hexstr_to_int(tmp2, &treclim);
+                treclim += reg_PC;
+                chptr += 2;
+
+                // load byte by byte on the MEM
+                while (reg_PC <= treclim) {
+                    get_Nbytes(tmp1, chptr++, 1);
+                    hexstr_to_int(tmp1, &byteval);
+                    if(validate_value(byteval) == NO_ERR) {
+                        printf("ERROR: wrong value to store!!!\n");
+                        return;
+                    }
+                    MEM[reg_PC++] = (char) byteval;
+                }
+                break;
+            case 'M':   // M record
+                // TODO M record
+
+                break;
+            case 'E':
+                CSADDR += CSLTH;
+                break;
+            default:
+                break;
+        }
+        read_line(fp, line);
+    }
 
 }
-
 
 // push a break point into BPTAB
 void push_bp(int address) {
@@ -215,12 +304,12 @@ void push_es(char *es_name, int es_addr) {
     to_push->addr = es_addr;
     to_push->next = NULL;
 
-    if (now == NULL){
+    if (now == NULL) {
         ESTAB[index] = now;
         return;
     }
     while (now->next) {
-        if (strcmp(now->name, es_name) == 0){
+        if (strcmp(now->name, es_name) == 0) {
             free(to_push);
             return;
         }
@@ -263,7 +352,6 @@ void free_estab() {
 }
 
 
-
 // initialize the values of registers
 void init_registers(int l, int pc) {
     reg_A = 0;
@@ -275,7 +363,7 @@ void init_registers(int l, int pc) {
     reg_T = 0;
 }
 
-void get_3bytes(char* dest, char* src){
-    strncpy(dest, src, 6);
-    dest[6] = '\0';
+void get_Nbytes(char *dest, char *src, int N) {
+    strncpy(dest, src, N * 2);
+    dest[N * 2] = '\0';
 }

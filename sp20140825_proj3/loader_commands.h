@@ -10,6 +10,7 @@
 #define MAX_HASH_SIZE 20
 #define MAX_FILES 10
 #define MAX_FILE_LEN 20
+#define MAX_REFERENCES 100
 
 typedef struct _es_node{
     char name[MAX_SYMBOL_LEN];
@@ -48,7 +49,7 @@ error run(int token_count);
 
 /* functions for EXECUTING COMMANDS */
 void loader_pass1(FILE* fp);
-void loader_pass2();
+void loader_pass2(FILE *fp);
 
 /* functions for DATA STRUCTURES */
 
@@ -64,6 +65,6 @@ void free_estab();
 
 // functions for ...
 void init_registers(int l, int pc);
-void get_3bytes(char* dest, char* src);
+void get_Nbytes(char *dest, char *src, int N);
 
 #endif
