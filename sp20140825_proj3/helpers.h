@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 // define the error codes
 typedef enum _error {
@@ -32,5 +33,6 @@ error hexstr_to_int(char* str, int* ret);
 void print_error_msg(error e);
 int is_nullstr(char* str);
 void int_to_binstr(char* ret, int val, int digit);
+error signed_6digit_hexstr_to_int(char* str, int* ret);
 
 #endif

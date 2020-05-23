@@ -98,3 +98,21 @@ void int_to_binstr(char *ret, int val, int digit) {
     }
     ret[digit] = '\0';
 }
+
+// convert signed 6 digit hexstr into int
+error signed_6digit_hexstr_to_int(char* str, int* ret){
+    int is_negative = 0;
+    char sign_ext[10] = "FF";
+    error e = hexstr_to_int(str, ret); // validate hexstr format and convert
+
+    if (e != NO_ERR) return e;
+
+    if (strlen(str) == 6 && (!isnumber(str[0]) || str[0] >= 8)) is_negative = 1;
+
+    if (is_negative){
+        strcat(sign_ext, str);
+        *ret = strtol(sign_ext, NULL, 16);
+    }
+    return NO_ERR;
+}
+
