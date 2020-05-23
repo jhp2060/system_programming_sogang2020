@@ -23,8 +23,12 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     char *objfile = filenames[i++];
     FILE *objfp;
 
+    // initialize ESTAB
+    free_estab();
+
     TOTLTH = 0;
     CSADDR = PROGADDR;
+    EXECADDR = PROGADDR;
 
     // print loadmap
     printf("%7-s  %7-s  %7-s  %7-s\n", "control", "symbol", "address", "length");
@@ -42,7 +46,22 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     printf("-----------------------------------\n");
     printf("%7-s  %7-s  %7-s  %04X   \n", " ", "  total", "length", TOTLTH);
 
-    // TODO pass2
+    i = 1;
+    objfile = filenames[i++];
+
+    TOTLTH = 0;
+    CSADDR = PROGADDR;
+    EXECADDR = PROGADDR;
+
+    while (!is_nullstr(objfile)) {
+        objfp = fopen(objfile, "r");
+        if (!objfp) return ERR_NOT_A_FILE;
+
+        loader_pass2(objfp);
+
+        fclose(objfp);
+        objfile = filenames[i++];
+    }
 
     init_registers(TOTLTH, PROGADDR);
 
@@ -117,8 +136,8 @@ void loader_pass1(FILE *fp) {
     char tmp2[MAX_OBJ_LINE_LEN];
     int address;
 
-    read_line(fp, line);
     while (!feof(fp)) {
+        read_line2(fp, line);
         switch (line[0]) {
             case 'H':     // H record
                 // get control section name
@@ -181,7 +200,6 @@ void loader_pass1(FILE *fp) {
             default:
                 break;
         }
-        read_line(fp, line);
     }
 }
 
@@ -199,14 +217,12 @@ void loader_pass2(FILE *fp) {
     int treclim, byteval;
 
     // M record
-    int halfbytenum, deltaaddr;
+    int startloc, halfbytenum, deltaaddr;
     es_node *es;
-    int org_addr, new_addr;
+    int org_val, newval;
 
-    CSADDR = PROGADDR;
-
-    read_line(fp, line);
     while (!feof(fp)) {
+        read_line2(fp, line);
         switch (line[0]) {
             case 'H':     // H record
                 // get control section name
@@ -215,6 +231,7 @@ void loader_pass2(FILE *fp) {
 
                 es_node *csec = get_es(tmp1);
                 rftab[1] = csec->addr;
+                CSADDR = rftab[1];
                 break;
             case 'R':
                 chptr = strtok(line, " ");
@@ -226,6 +243,7 @@ void loader_pass2(FILE *fp) {
                     if (hexstr_to_int(tmp1, &rfidx) == NO_ERR) {
                         strcpy(tmp2, chptr + 2);
                         es_node *es = get_es(tmp2);
+                        // TODO error handling : no external symbol in estab
                         rftab[rfidx] = es->addr;
                     }
                     chptr = strtok(NULL, " ");
@@ -242,27 +260,28 @@ void loader_pass2(FILE *fp) {
 
                 // get length of object code
                 get_Nbytes(tmp1, chptr, 1);
-                hexstr_to_int(tmp2, &treclim);
+                hexstr_to_int(tmp1, &treclim);
                 treclim += reg_PC;
                 chptr += 2;
 
                 // load byte by byte on the MEM
                 while (reg_PC <= treclim) {
-                    get_Nbytes(tmp1, chptr++, 1);
+                    get_Nbytes(tmp1, chptr, 1);
+                    chptr += 2;
                     hexstr_to_int(tmp1, &byteval);
-                    if (validate_value(byteval) == NO_ERR) {
+                    if (validate_value(byteval) != NO_ERR) {
                         printf("ERROR: wrong value to store!!!\n");
                         return;
                     }
-                    MEM[reg_PC++] = (char) byteval;
+                    MEM[reg_PC++] = byteval;
                 }
                 break;
             case 'M':   // M record
                 // get starting location of the address field to be modified
                 chptr = line + 1;
                 get_Nbytes(tmp1, chptr, 3);
-                hexstr_to_int(tmp1, &address);
-                address += CSADDR;
+                hexstr_to_int(tmp1, &startloc);
+                startloc += CSADDR;
                 chptr += 6;
 
                 // length of the address field to be modified in halfbytes
@@ -282,47 +301,62 @@ void loader_pass2(FILE *fp) {
                     if (*chptr == '-') deltaaddr = -deltaaddr;
                 }
 
-                // execute relocation
-                deltaaddr = CSADDR + deltaaddr;
+                // get value to modify
+                // concatenate 3 bytes from starting address
                 strcpy(tmp1, "");
 
-                // concatenate 3 bytes from starting address
-                sprintf(tmp2, "%02X", (int)MEM[address]);
+                sprintf(tmp2, "%02X", MEM[startloc]);
                 strcat(tmp1, tmp2);
 
-                sprintf(tmp2, "%02X", (int)MEM[address+1]);
+                sprintf(tmp2, "%02X", MEM[startloc+1]);
                 strcat(tmp1, tmp2);
 
-                sprintf(tmp2, "%02X", (int)MEM[address+2]);
+                sprintf(tmp2, "%02X", MEM[startloc+2]);
                 strcat(tmp1, tmp2);
 
 
-                signed_6digit_hexstr_to_int(tmp1, &org_addr);
-                new_addr = org_addr+deltaaddr;
+                if (halfbytenum == 5){
+                    hexstr_to_int(tmp1 + 1, &org_val);
+                }else if (halfbytenum == 6) {
+                    signed_6digit_hexstr_to_int(tmp1, &org_val);
+                }
+                newval = org_val + deltaaddr;
 
                 // update new address for symbols
-                sprintf(tmp1, "%06X", new_addr);
+                if (halfbytenum == 5){
+                    sprintf(tmp2, "%02X", MEM[startloc]);
+                    sprintf(tmp1, "%c%05X", tmp2[0], newval);
+                } else if (halfbytenum == 6){
+                    sprintf(tmp1, "%06X", newval);
+                }
+
+                // if newval is negative, tmp1 is 8 digit long
+                if (strlen(tmp1) == 8) {
+                    for (int i = 0; i <= 6; i++) tmp1[i] = tmp1[i + 2];
+                }
 
                 get_Nbytes(tmp2, tmp1, 1);
                 hexstr_to_int(tmp2, &byteval);
-                MEM[address] = (char)byteval;
+                MEM[startloc] = byteval;
 
                 get_Nbytes(tmp2, tmp1 + 2, 1);
                 hexstr_to_int(tmp2, &byteval);
-                MEM[address + 2] = (char)byteval;
+                MEM[startloc + 1] = byteval;
 
                 get_Nbytes(tmp2, tmp1 + 4, 1);
                 hexstr_to_int(tmp2, &byteval);
-                MEM[address + 4] = (char)byteval;
+                MEM[startloc + 2] = byteval;
                 break;
             case 'E':
-
-                CSADDR += CSLTH;
+                if (line[1] != '\0'){
+                    get_Nbytes(tmp1, line +1, 3);
+                    hexstr_to_int(tmp1, &address);
+                    EXECADDR = CSADDR + address;
+                }
                 break;
             default:
                 break;
         }
-        read_line(fp, line);
     }
 
 }
@@ -363,11 +397,12 @@ void push_es(char *es_name, int es_addr) {
     to_push->next = NULL;
 
     if (now == NULL) {
-        ESTAB[index] = now;
+        ESTAB[index] = to_push;
         return;
     }
     while (now->next) {
         if (strcmp(now->name, es_name) == 0) {
+            // TODO external symbol 중복
             free(to_push);
             return;
         }
@@ -424,4 +459,11 @@ void init_registers(int l, int pc) {
 void get_Nbytes(char *dest, char *src, int N) {
     strncpy(dest, src, N * 2);
     dest[N * 2] = '\0';
+}
+
+void read_line2(FILE *fp, char *line){
+    fgets(line, MAX_LINE_LEN, fp);
+    if (line[strlen(line) - 1] == '\n'){
+        line[strlen(line) - 1] = '\0';
+    }
 }

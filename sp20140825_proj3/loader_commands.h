@@ -35,6 +35,7 @@ es_node* ESTAB[MAX_HASH_SIZE];
 
 int PROGADDR;
 int CSADDR;
+int EXECADDR;
 int CSLTH;
 int TOTLTH;
 
@@ -66,5 +67,5 @@ void free_estab();
 // functions for ...
 void init_registers(int l, int pc);
 void get_Nbytes(char *dest, char *src, int N);
-
+void read_line2(FILE *fp, char *line);
 #endif
