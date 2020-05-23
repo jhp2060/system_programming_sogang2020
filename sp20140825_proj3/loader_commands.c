@@ -24,6 +24,7 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     FILE *objfp;
 
     TOTLTH = 0;
+    CSADDR = PROGADDR;
 
     // print loadmap
     printf("%7-s  %7-s  %7-s  %7-s\n", "control", "symbol", "address", "length");
@@ -116,8 +117,6 @@ void loader_pass1(FILE *fp) {
     char tmp2[MAX_OBJ_LINE_LEN];
     int address;
 
-    CSADDR = PROGADDR;
-
     read_line(fp, line);
     while (!feof(fp)) {
         switch (line[0]) {
@@ -129,8 +128,7 @@ void loader_pass1(FILE *fp) {
                     strncpy(tmp1, chptr, 6);
                     tmp1[6] = '\0';
                     chptr += 6;
-                }
-                else {
+                } else {
                     strcpy(tmp1, chptr);
                     chptr = strtok(NULL, " ");
                 }
@@ -156,12 +154,11 @@ void loader_pass1(FILE *fp) {
 
                 while (1) {
                     // get the name of external symbol
-                    if (strlen(chptr) > 6){
+                    if (strlen(chptr) > 6) {
                         strncpy(tmp1, chptr, 6);
                         tmp1[6] = '\0';
                         chptr += 6;
-                    }
-                    else {
+                    } else {
                         strcpy(tmp1, chptr);
                         chptr = strtok(NULL, " ");
                     }
@@ -201,6 +198,11 @@ void loader_pass2(FILE *fp) {
 
     int treclim, byteval;
 
+    // M record
+    int halfbytenum, deltaaddr;
+    es_node *es;
+    int org_addr, new_addr;
+
     CSADDR = PROGADDR;
 
     read_line(fp, line);
@@ -235,6 +237,7 @@ void loader_pass2(FILE *fp) {
                 chptr++;
                 get_Nbytes(tmp1, chptr, 3);
                 hexstr_to_int(tmp1, &reg_PC); // set PC
+                reg_PC += CSADDR;
                 chptr += 6;
 
                 // get length of object code
@@ -247,7 +250,7 @@ void loader_pass2(FILE *fp) {
                 while (reg_PC <= treclim) {
                     get_Nbytes(tmp1, chptr++, 1);
                     hexstr_to_int(tmp1, &byteval);
-                    if(validate_value(byteval) == NO_ERR) {
+                    if (validate_value(byteval) == NO_ERR) {
                         printf("ERROR: wrong value to store!!!\n");
                         return;
                     }
@@ -255,10 +258,65 @@ void loader_pass2(FILE *fp) {
                 }
                 break;
             case 'M':   // M record
-                // TODO M record
+                // get starting location of the address field to be modified
+                chptr = line + 1;
+                get_Nbytes(tmp1, chptr, 3);
+                hexstr_to_int(tmp1, &address);
+                address += CSADDR;
+                chptr += 6;
 
+                // length of the address field to be modified in halfbytes
+                get_Nbytes(tmp2, chptr, 1);
+                hexstr_to_int(tmp2, &halfbytenum);
+                chptr += 2;
+
+                deltaaddr = 0;
+                if (chptr) {
+                    strcpy(tmp1, chptr + 1);
+                    if (hexstr_to_int(tmp1, &rfidx) == NO_ERR) {
+                        deltaaddr = rftab[rfidx]; // reference number
+                    } else {
+                        es = get_es(tmp1);// symbol
+                        deltaaddr = es->addr;
+                    }
+                    if (*chptr == '-') deltaaddr = -deltaaddr;
+                }
+
+                // execute relocation
+                deltaaddr = CSADDR + deltaaddr;
+                strcpy(tmp1, "");
+
+                // concatenate 3 bytes from starting address
+                sprintf(tmp2, "%02X", (int)MEM[address]);
+                strcat(tmp1, tmp2);
+
+                sprintf(tmp2, "%02X", (int)MEM[address+1]);
+                strcat(tmp1, tmp2);
+
+                sprintf(tmp2, "%02X", (int)MEM[address+2]);
+                strcat(tmp1, tmp2);
+
+
+                signed_6digit_hexstr_to_int(tmp1, &org_addr);
+                new_addr = org_addr+deltaaddr;
+
+                // update new address for symbols
+                sprintf(tmp1, "%06X", new_addr);
+
+                get_Nbytes(tmp2, tmp1, 1);
+                hexstr_to_int(tmp2, &byteval);
+                MEM[address] = (char)byteval;
+
+                get_Nbytes(tmp2, tmp1 + 2, 1);
+                hexstr_to_int(tmp2, &byteval);
+                MEM[address + 2] = (char)byteval;
+
+                get_Nbytes(tmp2, tmp1 + 4, 1);
+                hexstr_to_int(tmp2, &byteval);
+                MEM[address + 4] = (char)byteval;
                 break;
             case 'E':
+
                 CSADDR += CSLTH;
                 break;
             default:
