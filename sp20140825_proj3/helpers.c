@@ -84,6 +84,7 @@ void print_error_msg(error e) {
 
 // whether the string is null string or not
 int is_nullstr(char *str) {
+    if (str == NULL) return 1;
     return (*(str) == '\0');
 }
 

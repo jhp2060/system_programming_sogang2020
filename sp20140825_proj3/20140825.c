@@ -159,7 +159,7 @@ void init(void) {
     init_symtab();
     RECENT_SYMTAB = NULL;
     PROGADDR = 0;
-    BP_HEAD = NULL;
+    BPTAB = NULL;
 }
 
 // free the dynamically allocated memories
