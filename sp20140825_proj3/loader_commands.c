@@ -115,6 +115,7 @@ error run(int token_count) {
     int opcode;
     int n, i, x, b, p, e;
     int disp;
+    opcode_node* op;
 
     while (reg_PC < limit) {
         int startloc = MEM[reg_PC];
