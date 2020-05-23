@@ -11,5 +11,3 @@ $(TARGET) : $(OBJECTS)
 clean :
 	rm *.o
 	rm *.out
-	rm *.obj
-	rm *.lst
