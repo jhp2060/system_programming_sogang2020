@@ -77,6 +77,8 @@ void print_error_msg(error e) {
         case ERR_NO_INST_COMMA:
             printf("ERROR: a comma(,) needed between two operands in the instruction.\n");
             break;
+        case ERR_WRONG_OPCODE:
+            printf("ERROR: opcode is not in OPTAB or it is not able to process for now.\n");
         default:
             break;
     }
