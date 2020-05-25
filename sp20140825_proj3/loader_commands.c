@@ -13,6 +13,7 @@ error progaddr(char *address, int token_count) {
     if (e != NO_ERR) return e;
 
     PROGADDR = addr;
+    rgstr[R_PC] = addr;
     return NO_ERR;
 }
 
@@ -114,6 +115,7 @@ error run(int token_count) {
 
     int limit = PROGADDR + CSLTH;
     error e;
+
 
     while (rgstr[R_PC] < limit) {
         if (BPCHK[rgstr[R_PC]] && !bp_visited) {
@@ -384,8 +386,6 @@ error process_inst(void) {
 
     opcode_node *op;
 
-    da_flag = 0;
-
     // get opcode bytes at first
     opcode = MEM[startloc];
     flag_ni = opcode % 4;
@@ -441,7 +441,6 @@ error process_inst(void) {
             tgt_addr = rgstr[R_PC] + disp;
         else {
             tgt_addr = disp;       // b, p = 0, 0 : direct addressing
-            // da_flag = 1;
         }
 
         if (flag_x) tgt_addr += rgstr[R_X];
@@ -572,7 +571,7 @@ void setCC(int val1, int val2){
 int get_value(int flag_ni, int startloc, int bytenum, int format) {
     int ret = 0, i = 0;
 
-    if (format == 4 || da_flag) return startloc;
+    if (format == 4) return startloc;
 
     switch(flag_ni){
         case 1:     // n, i = 0, 1 : immediate_ addressing
@@ -623,7 +622,6 @@ void store_3bytes(int flag_ni, int startloc, int to_store, int format) {
 
     switch(flag_ni){
         case 2:     // n, i = 1, 0 : indirect_addressing
-            if (da_flag) break;
             startloc = MEM[startloc];
             break;
         case 3:     // n, i = 1, 1 : simple addressing
@@ -646,7 +644,6 @@ void store_3bytes(int flag_ni, int startloc, int to_store, int format) {
 void store_1byte(int flag_ni, int startloc, int to_store, int format) {
     switch(flag_ni){
         case 2:     // n, i = 1, 0 : indirect_addressing
-            if(da_flag) break;
             startloc = MEM[startloc];
             break;
         case 3:     // n, i = 1, 1 : simple addressing

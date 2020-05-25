@@ -160,6 +160,7 @@ void init(void) {
     RECENT_SYMTAB = NULL;
     PROGADDR = 0;
     BPTAB = NULL;
+    init_estab();
 }
 
 // free the dynamically allocated memories

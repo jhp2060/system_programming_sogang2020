@@ -51,7 +51,6 @@ int TOTLTH;
 bp_node* BPTAB;
 int BPCHK[MEM_SIZE];
 int bp_visited;
-int da_flag;
 
 error progaddr(char* address, int token_count);
 error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count);
