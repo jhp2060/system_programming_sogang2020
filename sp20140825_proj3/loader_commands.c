@@ -113,27 +113,21 @@ error run(int token_count) {
     if (token_count != 1) return ERR_WRONG_TOKENS;
 
     int limit = PROGADDR + CSLTH;
-    int ra = rgstr[R_A];
     error e;
 
     while (rgstr[R_PC] < limit) {
         if (BPCHK[rgstr[R_PC]] && !bp_visited) {
             dumpreg();
-            printf("\t\t\t\tStop at checkpoint[%X]\n", rgstr[R_PC]);
+            printf("\t\tStop at checkpoint[%X]\n", rgstr[R_PC]);
             bp_visited = 1;
             return NO_ERR;
         }
         e = process_inst();
         if (e != NO_ERR) return e;
         bp_visited = 0;
-
-        if (ra != rgstr[R_A]){
-            printf("PC is %06X and A is %06X\n", rgstr[R_PC], rgstr[R_A]);
-        }
-        ra = rgstr[R_A];
     }
     dumpreg();
-    printf("\t\t\t\tEnd Program\n");
+    printf("\t\tEnd Program\n");
     return NO_ERR;
 }
 
@@ -387,7 +381,6 @@ error process_inst(void) {
 
     int tgt_addr = 0, startloc = rgstr[R_PC], argument = 0;
     int tmp;
-    int org_PC = rgstr[R_PC];
 
     opcode_node *op;
 
@@ -560,7 +553,7 @@ error process_inst(void) {
         case 0xDC: //WD
             break;
         default:
-            printf("WRONG ACCESS at 0x%02\n", rgstr[R_PC]);
+            printf("WRONG ACCESS at 0x%02X\n", rgstr[R_PC]);
             return ERR_WRONG_OPCODE;
             break;
     }
