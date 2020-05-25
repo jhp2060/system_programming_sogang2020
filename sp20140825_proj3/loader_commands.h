@@ -23,13 +23,21 @@ typedef struct _bp_node{
     struct _bp_node* next;
 }bp_node;
 
-int reg_A;
-int reg_X;
-int reg_L;
-int reg_PC;
-int reg_B;
-int reg_S;
-int reg_T;
+typedef enum _reg{
+    R_A = 0,
+    R_X,
+    R_L,
+    R_B,
+    R_S,
+    R_T,
+    R_F,
+    R_NONE,
+    R_PC,
+    R_SW,
+}reg;
+
+char CC;
+int rgstr[R_SW + 1];
 
 es_node* ESTAB[MAX_HASH_SIZE];
 
@@ -42,6 +50,8 @@ int TOTLTH;
 
 bp_node* BPTAB;
 int BPCHK[MEM_SIZE];
+int bp_visited;
+int da_flag;
 
 error progaddr(char* address, int token_count);
 error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count);
@@ -55,6 +65,12 @@ void loader_pass2(FILE *fp);
 
 // RUN
 void dumpreg(void);
+error process_inst(void);
+int get_value(int flag_ni, int startloc, int bytenum, int format);
+int get_addr(int flag_ni, int tgt_addr, int format);
+void store_3bytes(int flag_ni, int startloc, int to_store, int format);
+void store_1byte(int flag_ni, int startloc, int to_store, int format);
+void setCC(int val1, int val2);
 
 /* functions for DATA STRUCTURES */
 

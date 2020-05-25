@@ -63,6 +63,7 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
     }
 
     init_registers(TOTLTH, PROGADDR);
+    bp_visited = 0;
 
     return NO_ERR;
 }
@@ -111,25 +112,28 @@ error bp(char *address, int token_count) {
 error run(int token_count) {
     if (token_count != 1) return ERR_WRONG_TOKENS;
 
-    int limit = PROGADDR + reg_L;
-    int opcode;
-    int n, i, x, b, p, e;
-    int disp;
-    opcode_node* op;
+    int limit = PROGADDR + CSLTH;
+    int ra = rgstr[R_A];
+    error e;
 
-    while (reg_PC < limit) {
-        int startloc = MEM[reg_PC];
-
-        if (BPCHK[reg_PC]) {
+    while (rgstr[R_PC] < limit) {
+        if (BPCHK[rgstr[R_PC]] && !bp_visited) {
             dumpreg();
-            printf("\t\t\t\tStop at checkpoint[%X]\n", reg_PC++);
+            printf("\t\t\t\tStop at checkpoint[%X]\n", rgstr[R_PC]);
+            bp_visited = 1;
             return NO_ERR;
         }
-        reg_PC++;
-    }
+        e = process_inst();
+        if (e != NO_ERR) return e;
+        bp_visited = 0;
 
+        if (ra != rgstr[R_A]){
+            printf("PC is %06X and A is %06X\n", rgstr[R_PC], rgstr[R_A]);
+        }
+        ra = rgstr[R_A];
+    }
     dumpreg();
-    printf("End Program\n");
+    printf("\t\t\t\tEnd Program\n");
     return NO_ERR;
 }
 
@@ -260,18 +264,18 @@ void loader_pass2(FILE *fp) {
                 chptr = strtok(line, " ");
                 chptr++;
                 get_Nbytes(tmp1, chptr, 3);
-                hexstr_to_int(tmp1, &reg_PC); // set PC
-                reg_PC += CSADDR;
+                hexstr_to_int(tmp1, &rgstr[R_PC]); // set PC
+                rgstr[R_PC] += CSADDR;
                 chptr += 6;
 
                 // get length of object code
                 get_Nbytes(tmp1, chptr, 1);
                 hexstr_to_int(tmp1, &treclim);
-                treclim += reg_PC;
+                treclim += rgstr[R_PC];
                 chptr += 2;
 
                 // load byte by byte on the MEM
-                while (reg_PC <= treclim) {
+                while (rgstr[R_PC] <= treclim) {
                     get_Nbytes(tmp1, chptr, 1);
                     chptr += 2;
                     hexstr_to_int(tmp1, &byteval);
@@ -279,7 +283,7 @@ void loader_pass2(FILE *fp) {
                         printf("ERROR: wrong value to store!!!\n");
                         return;
                     }
-                    MEM[reg_PC++] = byteval;
+                    MEM[rgstr[R_PC]++] = byteval;
                 }
                 break;
             case 'M':   // M record
@@ -314,25 +318,25 @@ void loader_pass2(FILE *fp) {
                 sprintf(tmp2, "%02X", MEM[startloc]);
                 strcat(tmp1, tmp2);
 
-                sprintf(tmp2, "%02X", MEM[startloc+1]);
+                sprintf(tmp2, "%02X", MEM[startloc + 1]);
                 strcat(tmp1, tmp2);
 
-                sprintf(tmp2, "%02X", MEM[startloc+2]);
+                sprintf(tmp2, "%02X", MEM[startloc + 2]);
                 strcat(tmp1, tmp2);
 
 
-                if (halfbytenum == 5){
+                if (halfbytenum == 5) {
                     hexstr_to_int(tmp1 + 1, &org_val);
-                }else if (halfbytenum == 6) {
+                } else if (halfbytenum == 6) {
                     signed_6digit_hexstr_to_int(tmp1, &org_val);
                 }
                 newval = org_val + deltaaddr;
 
                 // update new address for symbols
-                if (halfbytenum == 5){
+                if (halfbytenum == 5) {
                     sprintf(tmp2, "%02X", MEM[startloc]);
                     sprintf(tmp1, "%c%05X", tmp2[0], newval);
-                } else if (halfbytenum == 6){
+                } else if (halfbytenum == 6) {
                     sprintf(tmp1, "%06X", newval);
                 }
 
@@ -354,8 +358,8 @@ void loader_pass2(FILE *fp) {
                 MEM[startloc + 2] = byteval;
                 break;
             case 'E':
-                if (line[1] != '\0'){
-                    get_Nbytes(tmp1, line +1, 3);
+                if (line[1] != '\0') {
+                    get_Nbytes(tmp1, line + 1, 3);
                     hexstr_to_int(tmp1, &address);
                     EXECADDR = CSADDR + address;
                 }
@@ -367,13 +371,305 @@ void loader_pass2(FILE *fp) {
 
 }
 
-// print out the values of registers
-void dumpreg(void){
-    printf("A : %06X   X : %06X\n", reg_A, reg_X);
-    printf("L : %06X  PC : %06X\n", reg_L, reg_PC);
-    printf("B : %06X   S : %06X\n", reg_B, reg_S);
-    printf("T : %06X\n", reg_T);
+// print out the values of rgstr
+void dumpreg(void) {
+    printf("A : %06X   X : %06X\n", rgstr[R_A], rgstr[R_X]);
+    printf("L : %06X  PC : %06X\n", rgstr[R_L], rgstr[R_PC]);
+    printf("B : %06X   S : %06X\n", rgstr[R_B], rgstr[R_S]);
+    printf("T : %06X\n", rgstr[R_T]);
 }
+
+error process_inst(void) {
+    int opcode, format;
+    int r1, r2;
+    int flag_ni = 0, flag_x = 0, flag_b = 0, flag_p = 0, flag_e = 0;
+    int disp = 0;
+
+    int tgt_addr = 0, startloc = rgstr[R_PC], argument = 0;
+    int tmp;
+    int org_PC = rgstr[R_PC];
+
+    opcode_node *op;
+
+    da_flag = 0;
+
+    // get opcode bytes at first
+    opcode = MEM[startloc];
+    flag_ni = opcode % 4;
+    opcode -= flag_ni;
+    op = get_opcode2(opcode);
+    if (!op) return ERR_WRONG_OPCODE;
+
+    // get format
+    if (*(op->format) == '1') format =1;
+    else if (*(op->format) == '2') format = 2;
+    else {
+        format = 3;
+        flag_e = (MEM[startloc + 1] & 0b10000) >> 4;
+        if (flag_e) format = 4;
+    }
+
+    rgstr[R_PC] += format;
+
+    // get arguments from the instruction
+    switch (format) {
+        case 2:
+            r1 = (MEM[startloc + 1] & 0b11110000) >> 4;
+            r2 = MEM[startloc + 1] & 0b00001111;
+            break;
+        case 3:
+        case 4:
+            flag_x = (MEM[startloc+1] & 0b10000000) >> 7;
+            flag_b =  (MEM[startloc+1] & 0b1000000) >> 6;
+            flag_p =   (MEM[startloc+1] & 0b100000) >> 5;
+            if (format == 3){
+                disp = (MEM[startloc+1] & 0x0F) << 8;
+                disp += MEM[startloc+2];
+            }
+            else {
+                disp = (MEM[startloc+1] & 0x0F) << 16;
+                disp += MEM[startloc+2] << 8;
+                disp += MEM[startloc+3];
+            }
+            break;
+        case 1:
+        default:
+            break;
+    }
+
+    // sign extension for negative disp value
+    if(format == 3 && (disp & 0x800)) disp = disp | 0xFFFFF000;
+
+    // get target address and argument value
+    if (format >= 3){
+        if (flag_b && !flag_p)      // b, p = 1, 0 : base relative addressing
+            tgt_addr = rgstr[R_B] + disp;
+        else if (!flag_b && flag_p) // b, p = 0, 1 : pc relative addressing
+            tgt_addr = rgstr[R_PC] + disp;
+        else {
+            tgt_addr = disp;       // b, p = 0, 0 : direct addressing
+            // da_flag = 1;
+        }
+
+        if (flag_x) tgt_addr += rgstr[R_X];
+    }
+
+    // execute opcode
+    switch (opcode) {
+        case 0xB4: //CLEAR
+            rgstr[r1] = 0;
+            break;
+        case 0x28: //COMP
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            setCC(rgstr[R_A], argument);
+            break;
+        case 0xA0: //COMPR
+            setCC(rgstr[r1], rgstr[r2]);
+            break;
+        case 0x3C: //J
+            argument = get_addr(flag_ni, tgt_addr, format);
+            rgstr[R_PC] = argument;
+            break;
+        case 0x30: //JEQ
+            argument = get_addr(flag_ni, tgt_addr, format);
+            if (CC == '=') rgstr[R_PC] = argument;
+            break;
+        case 0x38: //JLT
+            argument = get_addr(flag_ni, tgt_addr, format);
+            if (CC == '<') rgstr[R_PC] = argument;
+            break;
+        case 0x48: //JSUB
+            argument = get_addr(flag_ni, tgt_addr, format);
+            rgstr[R_L] = rgstr[R_PC];
+            rgstr[R_PC] = argument;
+            break;
+        case 0x00: //LDA
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_A] = argument;
+            break;
+        case 0x68: //LDB
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_B] = argument;
+            break;
+        case 0x50: //LDCH
+            argument = get_value(flag_ni, tgt_addr, 1, format);
+            tmp = 0x000000FF & argument;     // rightmost byte
+            rgstr[R_A] = rgstr[R_A] & 0xFFFFFF00;
+            rgstr[R_A] = rgstr[R_A] | tmp;
+            break;
+        case 0x70: //LDF
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_F] = argument;
+            break;
+        case 0x08: //LDL
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_L] = argument;
+            break;
+        case 0x6C: //LDS
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_S] = argument;
+            break;
+        case 0x74: //LDT
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_T] = argument;
+            break;
+        case 0x04: //LDX
+            argument = get_value(flag_ni, tgt_addr, 3, format);
+            rgstr[R_X] = argument;
+            break;
+        case 0xD8: //RD
+            rgstr[R_A] = rgstr[R_A] & 0xFFFFFF00;
+            break;
+        case 0x4C: //RSUB
+            rgstr[R_PC] = rgstr[R_L];
+            break;
+        case 0x0C: //STA
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_A], format);
+            break;
+        case 0x78: //STB
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_B], format);
+            break;
+        case 0x54: //STCH
+            store_1byte(flag_ni, tgt_addr, rgstr[R_A], format);
+            break;
+        case 0x80: //STF
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_F], format);
+            break;
+        case 0x14: //STL
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_L], format);
+            break;
+        case 0x7C: //STS
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_S], format);
+            break;
+        case 0xE8: //STSW
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_SW], format);
+            break;
+        case 0x84: //STT
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_T], format);
+            break;
+        case 0x10: //STX
+            store_3bytes(flag_ni, tgt_addr, rgstr[R_X], format);
+            break;
+        case 0xE0: //TD
+            CC = '<';
+            break;
+        case 0xB8: //TIXR
+            rgstr[R_X] += 1;
+            setCC(rgstr[R_X], rgstr[r1]);
+            break;
+        case 0xDC: //WD
+            break;
+        default:
+            printf("WRONG ACCESS at 0x%02\n", rgstr[R_PC]);
+            return ERR_WRONG_OPCODE;
+            break;
+    }
+
+    return NO_ERR;
+}
+
+// compare two arguments and set CC
+void setCC(int val1, int val2){
+    if (val1 > val2) CC = '>';
+    else if (val1 < val2) CC = '<';
+    else CC ='=';
+}
+
+// get value from MEM with a certain byte size
+int get_value(int flag_ni, int startloc, int bytenum, int format) {
+    int ret = 0, i = 0;
+
+    if (format == 4 || da_flag) return startloc;
+
+    switch(flag_ni){
+        case 1:     // n, i = 0, 1 : immediate_ addressing
+            ret = startloc;
+            break;
+        case 2:     // n, i = 1, 0 : indirect_addressing
+            startloc = MEM[startloc];
+            for (i = 0; i < bytenum; i++)
+                ret += (MEM[startloc + bytenum - i - 1] << (i * 8));
+            break;
+        case 3:     // n, i = 1, 1 : simple addressing
+            for (i = 0; i < bytenum; i++)
+                ret += (MEM[startloc + bytenum - i - 1] << (i * 8));
+            break;
+        case 0:     // n, i = 0, 0 : don't use disp
+            ret = -1;
+        default:
+            break;
+    }
+    return ret;
+}
+
+// get address to jump into
+int get_addr(int flag_ni, int tgt_addr, int format) {
+    int ret = 0;
+
+    if (format == 4) return tgt_addr;
+
+    switch(flag_ni){
+        case 2: // n, i = 1, 0 : indirect addressing
+            ret += MEM[tgt_addr + 2];
+            ret += (MEM[tgt_addr + 1] << 8);
+            ret += (MEM[tgt_addr] << 16);
+            break;
+        case 3:
+            ret = tgt_addr;
+            break;
+        case 0: // no address impossible
+        case 1: // immediate addressing impossible.
+        default:
+            break;
+    }
+    return ret;
+}
+
+// store a value into 3 MEMs
+void store_3bytes(int flag_ni, int startloc, int to_store, int format) {
+
+    switch(flag_ni){
+        case 2:     // n, i = 1, 0 : indirect_addressing
+            if (da_flag) break;
+            startloc = MEM[startloc];
+            break;
+        case 3:     // n, i = 1, 1 : simple addressing
+            startloc = startloc;
+            break;
+        case 0:     // n, i = 0, 0 : don't use disp
+        case 1:     // n, i = 0, 1 : immediate_ addressing. impossible.
+        default:
+            break;
+    }
+
+    if (format == 4) startloc = startloc;
+
+    MEM[startloc + 2] =  to_store & 0x000000FF;
+    MEM[startloc + 1] = (to_store & 0x0000FF00) >> 8;
+    MEM[startloc]     = (to_store & 0x00FF0000) >> 16;
+}
+
+// store a value into a MEM
+void store_1byte(int flag_ni, int startloc, int to_store, int format) {
+    switch(flag_ni){
+        case 2:     // n, i = 1, 0 : indirect_addressing
+            if(da_flag) break;
+            startloc = MEM[startloc];
+            break;
+        case 3:     // n, i = 1, 1 : simple addressing
+            startloc = startloc;
+            break;
+        case 0:     // n, i = 0, 0 : don't use disp
+        case 1:     // n, i = 0, 1 : immediate_ addressing. impossible.
+        default:
+            break;
+    }
+
+    if (format == 4) startloc = startloc;
+
+    MEM[startloc] =  to_store & 0x000000FF;
+}
+
 
 // push a break point into BPTAB
 void push_bp(int address) {
@@ -459,15 +755,13 @@ void free_estab() {
 }
 
 
-// initialize the values of registers
+// initialize the values of rgstr
 void init_registers(int l, int pc) {
-    reg_A = 0;
-    reg_X = 0;
-    reg_L = l;
-    reg_PC = pc;
-    reg_B = 0;
-    reg_S = 0;
-    reg_T = 0;
+    int i = 0;
+    for (i = 0; i <= R_SW; i++)
+        rgstr[i] = 0;
+    rgstr[R_L] = l;
+    rgstr[R_PC] = pc;
 }
 
 void get_Nbytes(char *dest, char *src, int N) {
@@ -475,9 +769,10 @@ void get_Nbytes(char *dest, char *src, int N) {
     dest[N * 2] = '\0';
 }
 
-void read_line2(FILE *fp, char *line){
+void read_line2(FILE *fp, char *line) {
     fgets(line, MAX_LINE_LEN, fp);
-    if (line[strlen(line) - 1] == '\n'){
+    if (line[strlen(line) - 1] == '\n') {
         line[strlen(line) - 1] = '\0';
     }
 }
+
