@@ -63,7 +63,7 @@ error loader(char filenames[MAX_FILES][MAX_FILE_LEN], int token_count) {
         objfile = filenames[i++];
     }
 
-    init_registers(TOTLTH, PROGADDR);
+    init_registers(TOTLTH, EXECADDR);
     bp_visited = 0;
 
     return NO_ERR;
@@ -249,7 +249,6 @@ void loader_pass2(FILE *fp) {
                     if (hexstr_to_int(tmp1, &rfidx) == NO_ERR) {
                         strcpy(tmp2, chptr + 2);
                         es_node *es = get_es(tmp2);
-                        // TODO error handling : no external symbol in estab
                         rftab[rfidx] = es->addr;
                     }
                     chptr = strtok(NULL, " ");
@@ -702,7 +701,6 @@ void push_es(char *es_name, int es_addr) {
     }
     while (now->next) {
         if (strcmp(now->name, es_name) == 0) {
-            // TODO external symbol 중복
             free(to_push);
             return;
         }
