@@ -102,7 +102,7 @@ opcode_node *get_opcode2(int opcode) {
     while (now != NULL) {    // find the opcode
         if (now->opcode == opcode)
             return now;
-        now = now->next;
+        now = now->next2;
     }
     return NULL;
 }
